@@ -4,7 +4,9 @@
 const PROXY_SERVER_URL = 'https://search-record.onrender.com'; 
 // ******************************************************************
 
-// פונקציית עזר: שולחת בקשת אימות לבדיקת תקפות פרטי המשתמש מול השרת
+/**
+ * פונקציית עזר: שולחת בקשת אימות לבדיקת תקפות פרטי המשתמש מול השרת
+ */
 const sendAuthRequest = async (username, password) => {
     
     // **תיקון קריטי: קידוד פרטי הכניסה (במיוחד לעברית)**
@@ -16,28 +18,37 @@ const sendAuthRequest = async (username, password) => {
 
     try {
         const response = await fetch(testUrl);
-        return response.ok || response.status === 404; // מחזיר true אם 200/404, false אם 401
+        // מחזיר true אם 200 (נמצא) או 404 (לא נמצא - אבל האימות עבר)
+        // מחזיר false אם 401 (אין הרשאה)
+        return response.ok || response.status === 404; 
     } catch (error) {
         console.error("Authentication check failed due to network error:", error);
-        return false;
+        return false; // שגיאת רשת נחשבת ככישלון אימות
     }
 };
 
 
+/**
+ * קוד ראשי שרץ כשהדף נטען
+ */
 document.addEventListener('DOMContentLoaded', async () => {
     const loginContainer = document.getElementById('login-container');
     const mainContent = document.getElementById('main-content');
     const loginBtn = document.getElementById('login-btn');
     const loginMessage = document.getElementById('login-message');
+    const searchForm = document.getElementById('search-form'); 
+    const resultsList = document.getElementById('results-list');
+    const loadingDiv = document.getElementById('loading');
     
     // ----------------------------------------------------
-    // לוגיקת טעינה ובדיקת סשן
+    // 1. לוגיקת טעינה ובדיקת סשן
     // ----------------------------------------------------
     const checkSession = async () => {
         const storedUser = sessionStorage.getItem('radioUser');
         const storedPass = sessionStorage.getItem('radioPass');
 
         if (storedUser && storedPass) {
+             // בדיקה חוזרת מול השרת לוודא שהפרטים עדיין תקפים
             if (await sendAuthRequest(storedUser, storedPass)) {
                 loginContainer.classList.add('hidden');
                 mainContent.classList.remove('hidden');
@@ -51,38 +62,41 @@ document.addEventListener('DOMContentLoaded', async () => {
         return false;
     };
     
+    // הפעלת בדיקת הסשן בעת טעינת הדף
     await checkSession();
 
 
     // ----------------------------------------------------
-    // מטפל בלחיצה על כפתור הכניסה
+    // 2. מטפל בלחיצה על כפתור הכניסה
     // ----------------------------------------------------
     loginBtn.addEventListener('click', async () => {
         const user = document.getElementById('initial-username').value;
         const pass = document.getElementById('initial-password').value;
         
         loginMessage.textContent = '';
-        loginBtn.disabled = true; 
+        loginBtn.disabled = true; // מונע קליקים כפולים
 
         if (await sendAuthRequest(user, pass)) {
+            // שמירת הפרטים בזיכרון הדפדפן (Session Storage)
             sessionStorage.setItem('radioUser', user);
             sessionStorage.setItem('radioPass', pass);
 
+            // הצגת התוכן הראשי והסתרת הכניסה
             loginContainer.classList.add('hidden');
             mainContent.classList.remove('hidden');
         } else {
             loginMessage.textContent = 'שם משתמש או סיסמה שגויים.';
-            loginBtn.disabled = false;
+            loginBtn.disabled = false; // מאפשר ניסיון חוזר
         }
     });
 
     // ----------------------------------------------------
-    // לוגיקת חיפוש
+    // 3. לוגיקת חיפוש (לאחר שהמשתמש מחובר)
     // ----------------------------------------------------
-    const searchForm = document.getElementById('search-form'); 
     searchForm.addEventListener('submit', async (event) => {
         event.preventDefault(); 
         
+        // קבלת פרמטרי האימות מזיכרון הדפדפן (Session Storage)
         const username = sessionStorage.getItem('radioUser');
         const password = sessionStorage.getItem('radioPass');
         
@@ -95,12 +109,12 @@ document.addEventListener('DOMContentLoaded', async () => {
         const hour = document.getElementById('hour').value;
         
         if (!date || !username || !password) {
+             // אם מאיזושהי סיבה חסרים נתונים, שולח חזרה לטופס הכניסה
+            sessionStorage.clear();
             location.reload(); 
             return;
         }
 
-        const resultsList = document.getElementById('results-list');
-        const loadingDiv = document.getElementById('loading');
         resultsList.innerHTML = '';
         loadingDiv.style.display = 'block';
 
@@ -115,7 +129,9 @@ document.addEventListener('DOMContentLoaded', async () => {
             const response = await fetch(searchUrl);
             
             if (!response.ok) {
+                // טיפול בשגיאת אימות (401) או אחרת
                 if (response.status === 401) {
+                     // אם האימות נכשל במהלך חיפוש, מפנה לכניסה מחדש
                     sessionStorage.clear();
                     location.reload();
                     return;
@@ -131,7 +147,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             if (files.length === 0) {
                 resultsList.innerHTML = `<li>לא נמצאו הקלטות בתאריך המבוקש.</li>`;
             } else {
-                resultsList.innerHTML = ''; 
+                resultsList.innerHTML = ''; // מנקה את הרשימה הקודמת
                 files.forEach(file => {
                     const listItem = document.createElement('li');
                     const fileLink = document.createElement('a');
