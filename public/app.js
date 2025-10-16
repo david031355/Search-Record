@@ -1,7 +1,7 @@
 // ******************************************************************
 // ⚠️ כתובת זו תשתנה! כרגע היא ריקה, נמלא אותה לאחר הפריסה ל-Render.
 // ******************************************************************
-const PROXY_SERVER_URL = ''; 
+const PROXY_SERVER_URL = 'https://search-record.onrender.com'; 
 // ******************************************************************
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -72,4 +72,5 @@ document.addEventListener('DOMContentLoaded', () => {
             console.error('Error fetching files:', error);
         }
     });
+
 });
