@@ -3,17 +3,17 @@
   "version": "1.0.0",
   "description": "Proxy server for radio recordings search.",
   "main": "server.js",
-  "scripts": {
-    "start": "node server.js",
-    "test": "echo \"Error: no test specified\" && exit 1"
-    "build": "echo 'No build step required'" 
+  
+  "scripts": { // <--- פסיק חסר מעל עלול לגרום לבעיה
+    "start": "node server.js", // <-- ⚠️ חייב להיות כאן פסיק!
+    "test": "echo \"Error: no test specified\" && exit 1", // <-- ⚠️ חייב להיות כאן פסיק!
+    "build": "echo 'No build step required'" // <-- אין פסיק לאחר השורה האחרונה בבלוק
   },
-  "dependencies": {
+  
+  "dependencies": { // <-- הפסיק כאן הוא לאחר הבלוק scripts
     "express": "^4.19.2",
     "jsdom": "^24.0.0",
     "node-fetch": "2.6.7" 
   },
   "type": "commonjs" 
 }
-
-
