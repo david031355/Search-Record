@@ -1,5 +1,6 @@
 // ******************************************************************
-// ⚠️ כתובת זו חייבת להיות ה-URL הציבורי של Render (כולל https://)
+// ⚠️ חשוב! השאר את הכתובת ריקה
+// זה גורם לדפדפן לשלוח את הבקשה לאותו שרת (Render)
 // ******************************************************************
 const PROXY_SERVER_URL = 'https://search-record.onrender.com'; 
 // ******************************************************************
@@ -18,12 +19,10 @@ const sendAuthRequest = async (username, password) => {
 
     try {
         const response = await fetch(testUrl);
-        // מחזיר true אם 200 (נמצא) או 404 (לא נמצא - אבל האימות עבר)
-        // מחזיר false אם 401 (אין הרשאה)
         return response.ok || response.status === 404; 
     } catch (error) {
         console.error("Authentication check failed due to network error:", error);
-        return false; // שגיאת רשת נחשבת ככישלון אימות
+        return false;
     }
 };
 
@@ -48,21 +47,18 @@ document.addEventListener('DOMContentLoaded', async () => {
         const storedPass = sessionStorage.getItem('radioPass');
 
         if (storedUser && storedPass) {
-             // בדיקה חוזרת מול השרת לוודא שהפרטים עדיין תקפים
             if (await sendAuthRequest(storedUser, storedPass)) {
                 loginContainer.classList.add('hidden');
                 mainContent.classList.remove('hidden');
                 return true;
             } else {
-                // אם הפרטים השמורים שגויים, נקה אותם
                 sessionStorage.clear();
             }
         }
-        loginContainer.classList.remove('hidden'); // הצגת טופס הכניסה
+        loginContainer.classList.remove('hidden'); 
         return false;
     };
     
-    // הפעלת בדיקת הסשן בעת טעינת הדף
     await checkSession();
 
 
@@ -74,19 +70,17 @@ document.addEventListener('DOMContentLoaded', async () => {
         const pass = document.getElementById('initial-password').value;
         
         loginMessage.textContent = '';
-        loginBtn.disabled = true; // מונע קליקים כפולים
+        loginBtn.disabled = true; 
 
         if (await sendAuthRequest(user, pass)) {
-            // שמירת הפרטים בזיכרון הדפדפן (Session Storage)
             sessionStorage.setItem('radioUser', user);
             sessionStorage.setItem('radioPass', pass);
 
-            // הצגת התוכן הראשי והסתרת הכניסה
             loginContainer.classList.add('hidden');
             mainContent.classList.remove('hidden');
         } else {
             loginMessage.textContent = 'שם משתמש או סיסמה שגויים.';
-            loginBtn.disabled = false; // מאפשר ניסיון חוזר
+            loginBtn.disabled = false; 
         }
     });
 
@@ -96,11 +90,9 @@ document.addEventListener('DOMContentLoaded', async () => {
     searchForm.addEventListener('submit', async (event) => {
         event.preventDefault(); 
         
-        // קבלת פרמטרי האימות מזיכרון הדפדפן (Session Storage)
         const username = sessionStorage.getItem('radioUser');
         const password = sessionStorage.getItem('radioPass');
         
-        // **תיקון קריטי: קידוד פרטי הכניסה (במיוחד לעברית)**
         const encodedUser = encodeURIComponent(username);
         const encodedPass = encodeURIComponent(password);
 
@@ -109,7 +101,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         const hour = document.getElementById('hour').value;
         
         if (!date || !username || !password) {
-             // אם מאיזושהי סיבה חסרים נתונים, שולח חזרה לטופס הכניסה
             sessionStorage.clear();
             location.reload(); 
             return;
@@ -118,7 +109,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         resultsList.innerHTML = '';
         loadingDiv.style.display = 'block';
 
-        // בניית ה-URL: שימוש בערכים המקודדים
         let searchUrl = `${PROXY_SERVER_URL}/search?user=${encodedUser}&pass=${encodedPass}&station=${station}&date=${date}`;
         
         if (hour !== '') {
@@ -129,9 +119,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             const response = await fetch(searchUrl);
             
             if (!response.ok) {
-                // טיפול בשגיאת אימות (401) או אחרת
                 if (response.status === 401) {
-                     // אם האימות נכשל במהלך חיפוש, מפנה לכניסה מחדש
                     sessionStorage.clear();
                     location.reload();
                     return;
@@ -147,21 +135,33 @@ document.addEventListener('DOMContentLoaded', async () => {
             if (files.length === 0) {
                 resultsList.innerHTML = `<li>לא נמצאו הקלטות בתאריך המבוקש.</li>`;
             } else {
-                resultsList.innerHTML = ''; // מנקה את הרשימה הקודמת
+                resultsList.innerHTML = ''; 
                 files.forEach(file => {
                     const listItem = document.createElement('li');
-                    const fileLink = document.createElement('a');
                     
+                    // 1. הקישור לשם הקובץ (פותח בכרטיסייה חדשה)
+                    const fileLink = document.createElement('a');
                     fileLink.href = file.path; 
                     fileLink.textContent = file.name;
                     fileLink.target = '_blank';
                     
+                    // 2. הנגן
                     const audio = document.createElement('audio');
                     audio.controls = true;
                     audio.src = file.path;
 
+                    // 3. כפתור ההורדה
+                    const downloadBtn = document.createElement('a');
+                    downloadBtn.href = file.path; 
+                    downloadBtn.textContent = 'הורדה'; 
+                    downloadBtn.setAttribute('download', file.name); 
+                    downloadBtn.className = 'download-button';
+
+                    // הוספת כל הרכיבים לרשימה
                     listItem.appendChild(fileLink);
                     listItem.appendChild(audio);
+                    listItem.appendChild(downloadBtn); 
+                    
                     resultsList.appendChild(listItem);
                 });
             }
