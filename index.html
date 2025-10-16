@@ -1,52 +1,70 @@
 <!DOCTYPE html>
-<html lang="he" dir="rtl">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>חיפוש הקלטות רדיו</title>
-    <style>
-        body { font-family: Arial, sans-serif; max-width: 900px; margin: 20px auto; padding: 15px; direction: rtl; }
-        h1, h2 { text-align: center; }
-        .search-form { display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 15px; margin-bottom: 30px; }
-        .results { border-top: 1px solid #ccc; padding-top: 20px; }
-        #results-list { list-style-type: none; padding: 0; }
-        #results-list li { margin-bottom: 10px; padding: 8px; border-bottom: 1px dotted #eee; }
-        #results-list a { text-decoration: none; color: #007bff; font-weight: bold; font-size: 1.1em; margin-left: 10px;}
-        #loading { text-align: center; display: none; color: green; font-weight: bold; }
-        audio { vertical-align: middle; }
-    </style>
-</head>
 <body>
-
-    <h1>חיפוש הקלטות רדיו 📻</h1>
-    <p style="text-align: center; font-size: 0.9em; color: #555;">(המערכת רצה משרת ענן)</p>
-
     <form id="search-form" class="search-form">
-        <label for="station">בחר תחנה:</label>
-        <select id="station">
-            <option value="kcm">קול חי מיוזיק</option>
-            <option value="kol_chai">קול חי</option>
-            <option value="kol_play">קול פליי</option>
-            <option value="kolbarama">קול ברמה</option>
-        </select>
-
-        <label for="date">בחר תאריך:</label>
-        <input type="date" id="date" required>
-
-        <label for="hour">בחר שעה (אופציונלי):</label>
-        <input type="number" id="hour" min="0" max="23" placeholder="כל השעות" style="width: 80px;">
+        <label for="username">שם משתמש:</label>
+        <input type="text" id="username" required style="width: 100px;">
         
-        <button type="submit">חפש</button> 
-    </form>
+        <label for="password">סיסמה:</label>
+        <input type="password" id="password" required style="width: 100px;">
+        <label for="station">בחר תחנה:</label>
+        </form>
+    ```
 
-    <hr>
+---
 
-    <div class="results">
-        <h2>תוצאות חיפוש:</h2>
-        <div id="loading">... טוען הקלטות מהשרת המרוחק...</div>
-        <ul id="results-list"></ul>
-    </div>
+## 3. עדכון קובץ `app.js` (שליחת פרטי כניסה)
 
-    <script src="app.js"></script>
-</body>
-</html>
+פתח את **`app.js`** כדי לשלוח את הפרמטרים `user` ו-`pass`.
+
+```javascript
+// ******************************************************************
+// ⚠️ כתובת זו חייבת להיות ה-URL הציבורי של Render (כולל https://)
+// ******************************************************************
+const PROXY_SERVER_URL = 'https://[ה-URL שקיבלת מ-Render]'; 
+// ******************************************************************
+
+document.addEventListener('DOMContentLoaded', () => {
+    const searchForm = document.getElementById('search-form'); 
+    // ... (קוד קודם)
+
+    searchForm.addEventListener('submit', async (event) => {
+        event.preventDefault();
+        
+        // קבלת פרמטרי האימות
+        const username = document.getElementById('username').value;
+        const password = document.getElementById('password').value;
+        
+        const station = document.getElementById('station').value;
+        const date = document.getElementById('date').value;
+        const hour = document.getElementById('hour').value;
+
+        if (!date) {
+            alert('יש לבחור תאריך!');
+            return;
+        }
+
+        resultsList.innerHTML = '';
+        loadingDiv.style.display = 'block';
+
+        // **בניית ה-URL: הוספת user ו-pass**
+        let searchUrl = `${PROXY_SERVER_URL}/search?user=${username}&pass=${password}&station=${station}&date=${date}`;
+        
+        if (hour !== '') {
+            searchUrl += `&hour=${hour}`;
+        }
+
+        try {
+            const response = await fetch(searchUrl);
+            
+            if (!response.ok) {
+                if (response.status === 401) {
+                    throw new Error(`אין הרשאה: בדוק שם משתמש וסיסמה.`);
+                }
+                // ... (המשך טיפול בשגיאות)
+            }
+            // ... (המשך הצגת התוצאות)
+        } catch (error) {
+            // ... (טיפול בשגיאות)
+        }
+    });
+});
