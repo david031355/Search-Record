@@ -1,0 +1,206 @@
+/* --- 1. עיצוב בסיסי ופונטים --- */
+body {
+    font-family: 'Rubik', Arial, sans-serif; /* שימוש בפונט החדש */
+    background-color: #f4f7f6; /* רקע אפור בהיר מאוד */
+    color: #333; /* צבע טקסט כהה וברור */
+    line-height: 1.6;
+    direction: rtl;
+    margin: 0;
+    padding: 20px;
+}
+
+/* --- 2. עיצוב הכותרות --- */
+h1, h2 {
+    text-align: center;
+    color: #005a9c; /* צבע כחול עמוק לכותרות */
+}
+
+h1 {
+    font-weight: 700;
+}
+
+h2 {
+    font-weight: 500;
+}
+
+.subtitle {
+    text-align: center;
+    font-size: 0.9em;
+    color: #555;
+    margin-top: -15px;
+}
+
+hr {
+    border: none;
+    border-top: 1px solid #ddd;
+    margin: 30px 0;
+}
+
+/* --- 3. עיצוב "כרטיסים" (טופס כניסה ותוכן ראשי) --- */
+#login-container, #main-content {
+    max-width: 900px;
+    margin: 20px auto;
+    padding: 25px 30px;
+    background-color: #ffffff; /* רקע לבן */
+    border-radius: 12px; /* פינות מעוגלות */
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05); /* הצללה עדינה */
+}
+
+/* --- 4. עיצוב טופס הכניסה --- */
+#login-container {
+    max-width: 400px; /* קטן יותר ומרכזי */
+    margin-top: 80px;
+}
+
+.login-field {
+    margin-bottom: 15px;
+    text-align: right;
+}
+
+.login-field label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: 500;
+}
+
+/* עיצוב אחיד לכל שדות הקלט */
+input[type="text"],
+input[type="password"],
+input[type="date"],
+input[type="number"],
+select {
+    width: 95%;
+    padding: 12px;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    font-size: 1em;
+    font-family: 'Rubik', Arial, sans-serif;
+    transition: border-color 0.3s, box-shadow 0.3s;
+}
+
+/* אפקט פוקוס יפה */
+input:focus, select:focus {
+    border-color: #007bff;
+    box-shadow: 0 0 5px rgba(0,123,255,0.25);
+    outline: none;
+}
+
+/* --- 5. עיצוב כפתורים --- */
+button, #login-btn {
+    background-color: #007bff; /* צבע רקע כחול */
+    color: white;
+    font-weight: 500;
+    font-size: 1em;
+    padding: 12px 20px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background-color 0.3s ease, transform 0.2s;
+}
+
+button:hover, #login-btn:hover {
+    background-color: #0056b3; /* כחול כהה יותר במעבר עכבר */
+    transform: translateY(-2px); /* הרמה קלה */
+}
+
+button:disabled, #login-btn:disabled {
+    background-color: #aaa;
+    cursor: not-allowed;
+}
+
+/* --- 6. עיצוב טופס החיפוש --- */
+.search-form {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: center;
+    gap: 15px;
+    margin-bottom: 30px;
+}
+.search-form label {
+    font-weight: 500;
+}
+/* התאמת רוחב שדות בטופס החיפוש */
+.search-form input, .search-form select {
+    width: auto;
+    min-width: 150px;
+}
+
+/* --- 7. עיצוב התוצאות והנגן --- */
+.results {
+    border-top: 1px solid #eee;
+    padding-top: 20px;
+}
+
+#results-list li {
+    display: flex; /* מסדר את הקישור והנגן בשורה */
+    flex-wrap: wrap;
+    justify-content: space-between; /* רווח ביניהם */
+    align-items: center;
+    padding: 15px;
+    margin-bottom: 10px;
+    border-bottom: 1px solid #f0f0f0;
+    transition: background-color 0.2s;
+}
+
+#results-list li:hover {
+    background-color: #f9f9f9;
+}
+
+#results-list a {
+    text-decoration: none;
+    color: #0056b3;
+    font-weight: 500;
+    font-size: 1.1em;
+}
+
+audio {
+    max-width: 100%; /* מונע מהנגן לגלוש */
+    border-radius: 50px; /* מעגל את הנגן (תלוי בדפדפן) */
+    margin-top: 10px;
+}
+
+/* --- 8. עיצוב הודעות --- */
+#loading {
+    text-align: center;
+    display: none;
+    color: #28a745; /* ירוק */
+    font-weight: 500;
+    font-size: 1.2em;
+}
+
+#login-message {
+    color: #dc3545; /* אדום */
+    min-height: 1.2em;
+    font-weight: 500;
+}
+
+/* כלי עזר להסתרה */
+.hidden {
+    display: none !important;
+}
+
+/* --- 9. עיצוב רספונסיבי למובייל --- */
+@media (max-width: 768px) {
+    body {
+        padding: 10px;
+    }
+    
+    #login-container, #main-content {
+        padding: 15px;
+    }
+
+    .search-form {
+        flex-direction: column; /* הופך את הטופס לטור */
+        gap: 20px;
+    }
+
+    .search-form input, .search-form select, .search-form button {
+        width: 90%; /* רוחב מלא */
+    }
+
+    #results-list li {
+        flex-direction: column; /* מסדר את הנגן מתחת לקישור */
+        align-items: flex-start;
+    }
+}
