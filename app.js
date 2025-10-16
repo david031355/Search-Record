@@ -1,5 +1,5 @@
 // ******************************************************************
-// ⚠️ כתובת זו תשתנה! כרגע היא ריקה, נמלא אותה לאחר הפריסה ל-Render.
+// ⚠️ כתובת זו חייבת להיות ה-URL הציבורי של Render (כולל https://)
 // ******************************************************************
 const PROXY_SERVER_URL = 'https://search-record.onrender.com'; 
 // ******************************************************************
@@ -10,7 +10,9 @@ document.addEventListener('DOMContentLoaded', () => {
     const loadingDiv = document.getElementById('loading');
 
     searchForm.addEventListener('submit', async (event) => {
-        event.preventDefault();
+        event.preventDefault(); 
+        
+        // אין קבלת סיסמה/משתמש בגרסה זו
         
         const station = document.getElementById('station').value;
         const date = document.getElementById('date').value;
@@ -24,6 +26,7 @@ document.addEventListener('DOMContentLoaded', () => {
         resultsList.innerHTML = '';
         loadingDiv.style.display = 'block';
 
+        // בניית ה-URL
         let searchUrl = `${PROXY_SERVER_URL}/search?station=${station}&date=${date}`;
         
         if (hour !== '') {
@@ -34,12 +37,9 @@ document.addEventListener('DOMContentLoaded', () => {
             const response = await fetch(searchUrl);
             
             if (!response.ok) {
-                if (response.status === 400) {
-                     const errorData = await response.json();
-                     throw new Error(errorData.error);
-                }
-                // אם ה-URL ריק, תופיע שגיאה. זה יתוקן לאחר הפריסה.
-                throw new Error(`שגיאה בחיבור לשרת ה-Proxy. ודא שכתובת ה-URL מעודכנת ב-app.js.`);
+                const errorData = await response.json().catch(() => ({ error: 'שגיאת רשת או שגיאה בשרת.' }));
+                
+                throw new Error(`שגיאה בחיבור לשרת ה-Proxy: ${response.status}`);
             }
 
             const files = await response.json(); 
@@ -59,6 +59,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     
                     const audio = document.createElement('audio');
                     audio.controls = true;
+                    // **ה-src מגיע מ-Render (HTTPS) דרך ה-Reverse Proxy**
                     audio.src = file.path;
 
                     listItem.appendChild(fileLink);
@@ -72,5 +73,4 @@ document.addEventListener('DOMContentLoaded', () => {
             console.error('Error fetching files:', error);
         }
     });
-
 });
