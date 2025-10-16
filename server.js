@@ -5,16 +5,19 @@ const path = require('path');
 const { JSDOM } = require('jsdom');
 
 const app = express();
-// שינוי קריטי: שימוש בפורט של סביבת Render
 const PORT = process.env.PORT || 3000; 
 
 // ******************************************************************
-// ⚠️ נקודת ההגדרה הקריטית: כתובת שרת ההקלטות המרוחק
+// ⚠️ נקודות קריטיות לחיבור:
 // ******************************************************************
 const REMOTE_RECORDING_SERVER_URL = 'http://164.68.127.36/'; 
 // עליך להחליף את הכתובת הזו ב-IP או בדומיין האמיתי של שרת ההקלטות שלך!
+
+// Render מספק את ה-HTTPS URL שלו דרך משתנה סביבה (RENDER_EXTERNAL_URL)
+const RENDER_PUBLIC_URL = process.env.RENDER_EXTERNAL_URL; 
 // ******************************************************************
 
+// תיקון: הגשת קבצים סטטיים משורש הפרויקט
 app.use(express.static(__dirname)); 
 
 app.get('/search', async (req, res) => {
@@ -48,12 +51,13 @@ app.get('/search', async (req, res) => {
             if ((href.endsWith('.mp3') || href.endsWith('.wav'))) {
                 recordings.push({
                     name: link.textContent,
-                    path: targetDirectoryUrl + href 
+                    // **התיקון הקריטי:** יצירת נתיב שמשתמש ב-HTTPS URL של Render
+                    path: `${RENDER_PUBLIC_URL}/recordings/${station}/${year}/${month}/${day}/${href}` 
                 });
             }
         });
         
-        // סינון לפי שעה בודדת
+        // סינון לפי שעה בודדת (כפי שנקבע)
         if (hour) {
             const targetHour = parseInt(hour, 10);
             
@@ -80,7 +84,27 @@ app.get('/search', async (req, res) => {
     }
 });
 
+// ***************************************************************
+// Reverse Proxy להזרמת קבצי מדיה דרך Render (הכרחי ל-HTTPS!)
+// ***************************************************************
+app.use('/recordings', async (req, res) => {
+    // בונה את ה-URL המלא לשרת ההקלטות המקורי
+    const remoteUrl = REMOTE_RECORDING_SERVER_URL + req.originalUrl.replace('/recordings', '');
+    try {
+        const response = await fetch(remoteUrl);
+        if (!response.ok) {
+            return res.status(response.status).send('Failed to stream file');
+        }
+        // העברת הכותרות וזרם הקובץ ישירות לדפדפן
+        response.headers.forEach((value, name) => res.set(name, value));
+        response.body.pipe(res);
+    } catch (error) {
+        console.error('Reverse Proxy Error:', error);
+        res.status(500).send('Streaming error');
+    }
+});
+
+
 app.listen(PORT, () => {
     console.log(`Proxy Server running on port ${PORT}.`);
-
 });
