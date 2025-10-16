@@ -6,15 +6,18 @@ const PROXY_SERVER_URL = 'https://search-record.onrender.com';
 
 // פונקציית עזר: שולחת בקשת אימות לבדיקת תקפות פרטי המשתמש מול השרת
 const sendAuthRequest = async (username, password) => {
+    
+    // **תיקון קריטי: קידוד פרטי הכניסה (במיוחד לעברית)**
+    const encodedUser = encodeURIComponent(username);
+    const encodedPass = encodeURIComponent(password);
+    
     // שולח בקשת חיפוש 'ריקה' (עם נתונים בסיסיים) רק כדי לאכוף את האימות בשרת
-    const testUrl = `${PROXY_SERVER_URL}/search?user=${username}&pass=${password}&station=kcm&date=2024-01-01`;
+    const testUrl = `${PROXY_SERVER_URL}/search?user=${encodedUser}&pass=${encodedPass}&station=kcm&date=2024-01-01`;
 
     try {
         const response = await fetch(testUrl);
-        // אם השרת החזיר 401 (Unauthorized), האימות נכשל.
         return response.ok || response.status === 404; // מחזיר true אם 200/404, false אם 401
     } catch (error) {
-        // שגיאת רשת (כמו Failed to fetch) נחשבת ככישלון זמני
         console.error("Authentication check failed due to network error:", error);
         return false;
     }
@@ -35,11 +38,13 @@ document.addEventListener('DOMContentLoaded', async () => {
         const storedPass = sessionStorage.getItem('radioPass');
 
         if (storedUser && storedPass) {
-             // בדיקה חוזרת מול השרת לוודא שהפרטים עדיין תקפים
             if (await sendAuthRequest(storedUser, storedPass)) {
                 loginContainer.classList.add('hidden');
                 mainContent.classList.remove('hidden');
                 return true;
+            } else {
+                // אם הפרטים השמורים שגויים, נקה אותם
+                sessionStorage.clear();
             }
         }
         loginContainer.classList.remove('hidden'); // הצגת טופס הכניסה
@@ -57,10 +62,9 @@ document.addEventListener('DOMContentLoaded', async () => {
         const pass = document.getElementById('initial-password').value;
         
         loginMessage.textContent = '';
-        loginBtn.disabled = true; // מונע קליקים כפולים
+        loginBtn.disabled = true; 
 
         if (await sendAuthRequest(user, pass)) {
-            // שמירת הפרטים בזיכרון הדפדפן (Session Storage)
             sessionStorage.setItem('radioUser', user);
             sessionStorage.setItem('radioPass', pass);
 
@@ -79,26 +83,29 @@ document.addEventListener('DOMContentLoaded', async () => {
     searchForm.addEventListener('submit', async (event) => {
         event.preventDefault(); 
         
-        // קבלת פרמטרי האימות מזיכרון הדפדפן (Session Storage)
         const username = sessionStorage.getItem('radioUser');
         const password = sessionStorage.getItem('radioPass');
+        
+        // **תיקון קריטי: קידוד פרטי הכניסה (במיוחד לעברית)**
+        const encodedUser = encodeURIComponent(username);
+        const encodedPass = encodeURIComponent(password);
 
         const station = document.getElementById('station').value;
         const date = document.getElementById('date').value;
         const hour = document.getElementById('hour').value;
         
         if (!date || !username || !password) {
-             // אם מאיזושהי סיבה חסרים נתונים, שולח חזרה לטופס הכניסה
             location.reload(); 
             return;
         }
 
-        resultsList.innerHTML = '';
+        const resultsList = document.getElementById('results-list');
         const loadingDiv = document.getElementById('loading');
+        resultsList.innerHTML = '';
         loadingDiv.style.display = 'block';
 
-        // בניית ה-URL: שליחת פרטי האימות השמורים
-        let searchUrl = `${PROXY_SERVER_URL}/search?user=${username}&pass=${password}&station=${station}&date=${date}`;
+        // בניית ה-URL: שימוש בערכים המקודדים
+        let searchUrl = `${PROXY_SERVER_URL}/search?user=${encodedUser}&pass=${encodedPass}&station=${station}&date=${date}`;
         
         if (hour !== '') {
             searchUrl += `&hour=${hour}`;
@@ -108,9 +115,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             const response = await fetch(searchUrl);
             
             if (!response.ok) {
-                // טיפול בשגיאת אימות (401) או אחרת
                 if (response.status === 401) {
-                     // אם האימות נכשל במהלך חיפוש, מפנה לכניסה מחדש
                     sessionStorage.clear();
                     location.reload();
                     return;
@@ -126,8 +131,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             if (files.length === 0) {
                 resultsList.innerHTML = `<li>לא נמצאו הקלטות בתאריך המבוקש.</li>`;
             } else {
-                const resultsList = document.getElementById('results-list');
-                resultsList.innerHTML = ''; // מנקה את הרשימה הקודמת
+                resultsList.innerHTML = ''; 
                 files.forEach(file => {
                     const listItem = document.createElement('li');
                     const fileLink = document.createElement('a');
@@ -147,7 +151,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             }
         } catch (error) {
             loadingDiv.style.display = 'none';
-            document.getElementById('results-list').innerHTML = `<li>אירעה שגיאה: **${error.message}**</li>`;
+            resultsList.innerHTML = `<li>אירעה שגיאה: **${error.message}**</li>`;
             console.error('Error fetching files:', error);
         }
     });
