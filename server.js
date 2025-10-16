@@ -15,7 +15,7 @@ const REMOTE_RECORDING_SERVER_URL = 'http://164.68.127.36/';
 // עליך להחליף את הכתובת הזו ב-IP או בדומיין האמיתי של שרת ההקלטות שלך!
 // ******************************************************************
 
-app.use(express.static(path.join(__dirname, 'public'))); 
+app.use(express.static(__dirname)); 
 
 app.get('/search', async (req, res) => {
     const { station, date, hour } = req.query; 
@@ -82,4 +82,5 @@ app.get('/search', async (req, res) => {
 
 app.listen(PORT, () => {
     console.log(`Proxy Server running on port ${PORT}.`);
+
 });
