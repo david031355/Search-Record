@@ -8,21 +8,28 @@ const app = express();
 const PORT = process.env.PORT || 3000; 
 
 // ******************************************************************
-// ⚠️ נקודות קריטיות לחיבור:
+// ⚠️ הגדרות אבטחה וחיבור
 // ******************************************************************
 const REMOTE_RECORDING_SERVER_URL = 'http://164.68.127.36/'; 
 // עליך להחליף את הכתובת הזו ב-IP או בדומיין האמיתי של שרת ההקלטות שלך!
 
-// Render מספק את ה-HTTPS URL שלו דרך משתנה סביבה (RENDER_EXTERNAL_URL)
-const RENDER_PUBLIC_URL = process.env.RENDER_EXTERNAL_URL; 
+// ערכים אלו נקראים ממשתני הסביבה (Environment Variables) ב-Render
+const VALID_USERNAME = process.env.AUTH_USER || 'admin'; 
+const VALID_PASSWORD = process.env.AUTH_PASS || '12345';
 // ******************************************************************
 
-// תיקון: הגשת קבצים סטטיים משורש הפרויקט
 app.use(express.static(__dirname)); 
 
 app.get('/search', async (req, res) => {
-    const { station, date, hour } = req.query; 
+    // 1. קבלת פרמטרי אימות
+    const { station, date, hour, user, pass } = req.query; // הוספנו user ו-pass
 
+    // 2. אכיפת האימות (חובה)
+    if (user !== VALID_USERNAME || pass !== VALID_PASSWORD) {
+        return res.status(401).json({ error: 'שם משתמש או סיסמה שגויים.' });
+    }
+    
+    // בדיקות חובה לאחר האימות
     if (!station || !date) {
         return res.status(400).json({ error: 'Missing station or date parameters' });
     }
@@ -41,6 +48,7 @@ app.get('/search', async (req, res) => {
         }
 
         const htmlText = await response.text();
+        
         const dom = new JSDOM(htmlText);
         const links = dom.window.document.querySelectorAll('a');
         
@@ -51,8 +59,7 @@ app.get('/search', async (req, res) => {
             if ((href.endsWith('.mp3') || href.endsWith('.wav'))) {
                 recordings.push({
                     name: link.textContent,
-                    // **התיקון הקריטי:** יצירת נתיב שמשתמש ב-HTTPS URL של Render
-                    path: `${RENDER_PUBLIC_URL}/recordings/${station}/${year}/${month}/${day}/${href}` 
+                    path: `${process.env.RENDER_EXTERNAL_URL}/recordings/${station}/${year}/${month}/${day}/${href}`
                 });
             }
         });
@@ -84,26 +91,21 @@ app.get('/search', async (req, res) => {
     }
 });
 
-// ***************************************************************
-// Reverse Proxy להזרמת קבצי מדיה דרך Render (הכרחי ל-HTTPS!)
-// ***************************************************************
+// Reverse Proxy להזרמת קבצי מדיה (חיוני ל-HTTPS!)
 app.use('/recordings', async (req, res) => {
-    // בונה את ה-URL המלא לשרת ההקלטות המקורי
     const remoteUrl = REMOTE_RECORDING_SERVER_URL + req.originalUrl.replace('/recordings', '');
     try {
         const response = await fetch(remoteUrl);
         if (!response.ok) {
             return res.status(response.status).send('Failed to stream file');
         }
-        // העברת הכותרות וזרם הקובץ ישירות לדפדפן
         response.headers.forEach((value, name) => res.set(name, value));
         response.body.pipe(res);
     } catch (error) {
-        console.error('Reverse Proxy Error:', error);
+        console.error('Reverse Proxy Error:', error.message);
         res.status(500).send('Streaming error');
     }
 });
-
 
 app.listen(PORT, () => {
     console.log(`Proxy Server running on port ${PORT}.`);
