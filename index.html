@@ -4,38 +4,13 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>חיפוש הקלטות רדיו</title>
-    <style>
-        /* --- עיצוב כללי --- */
-        body { font-family: Arial, sans-serif; max-width: 900px; margin: 20px auto; padding: 15px; direction: rtl; }
-        h1, h2 { text-align: center; }
-        .results { border-top: 1px solid #ccc; padding-top: 20px; }
-        #results-list { list-style-type: none; padding: 0; }
-        #results-list li { margin-bottom: 10px; padding: 8px; border-bottom: 1px dotted #eee; }
-        #results-list a { text-decoration: none; color: #007bff; font-weight: bold; font-size: 1.1em; margin-left: 10px;}
-        #loading { text-align: center; display: none; color: green; font-weight: bold; }
-        audio { vertical-align: middle; }
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Rubik:wght@300;400;500;700&display=swap" rel="stylesheet">
 
-        
-        /* --- עיצוב טופס כניסה --- */
-        #login-container { 
-            max-width: 350px; 
-            margin: 100px auto; 
-            padding: 20px; 
-            border: 1px solid #ccc; 
-            border-radius: 8px; 
-            text-align: center; 
-        }
-        .login-field { margin-bottom: 15px; }
-        .login-field label { display: block; margin-bottom: 5px; font-weight: bold; }
-        .login-field input { width: 90%; padding: 10px; border: 1px solid #ccc; border-radius: 4px; }
-        #login-message { color: red; min-height: 1.2em; }
-
-        /* --- עיצוב טופס חיפוש --- */
-        .search-form { display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 15px; margin-bottom: 30px; }
-        
-        /* --- כלי עזר להסתרה --- */
-        .hidden { display: none !important; }
-    </style>
+    <link rel="stylesheet" href="style.css">
+    
 </head>
 <body>
     
@@ -58,7 +33,7 @@
 
     <div id="main-content" class="hidden">
         <h1>חיפוש הקלטות רדיו 📻</h1>
-        <p style="text-align: center; font-size: 0.9em; color: #555;">(פותח עבור חיים קורץ - כל הזכויות שמורות ©)</p>
+        <p class="subtitle">(המערכת רצה משרת ענן)</p>
 
         <form id="search-form" class="search-form">
             <label for="station">בחר תחנה:</label>
@@ -73,7 +48,7 @@
             <input type="date" id="date" required>
 
             <label for="hour">בחר שעה (אופציונלי):</label>
-            <input type="number" id="hour" min="0" max="23" placeholder="כל השעות" style="width: 80px;">
+            <input type="number" id="hour" min="0" max="23" placeholder="כל השעות">
             
             <button type="submit">חפש</button> 
         </form>
@@ -90,6 +65,3 @@
     <script src="app.js"></script>
 </body>
 </html>
-
-
-
