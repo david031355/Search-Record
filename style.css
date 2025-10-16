@@ -1,8 +1,8 @@
 /* --- 1. עיצוב בסיסי ופונטים --- */
 body {
-    font-family: 'Rubik', Arial, sans-serif; /* שימוש בפונט החדש */
-    background-color: #f4f7f6; /* רקע אפור בהיר מאוד */
-    color: #333; /* צבע טקסט כהה וברור */
+    font-family: 'Rubik', Arial, sans-serif; 
+    background-color: #f4f7f6; 
+    color: #333; 
     line-height: 1.6;
     direction: rtl;
     margin: 0;
@@ -12,24 +12,16 @@ body {
 /* --- 2. עיצוב הכותרות --- */
 h1, h2 {
     text-align: center;
-    color: #005a9c; /* צבע כחול עמוק לכותרות */
+    color: #005a9c; 
 }
-
-h1 {
-    font-weight: 700;
-}
-
-h2 {
-    font-weight: 500;
-}
-
+h1 { font-weight: 700; }
+h2 { font-weight: 500; }
 .subtitle {
     text-align: center;
     font-size: 0.9em;
     color: #555;
     margin-top: -15px;
 }
-
 hr {
     border: none;
     border-top: 1px solid #ddd;
@@ -41,29 +33,27 @@ hr {
     max-width: 900px;
     margin: 20px auto;
     padding: 25px 30px;
-    background-color: #ffffff; /* רקע לבן */
-    border-radius: 12px; /* פינות מעוגלות */
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05); /* הצללה עדינה */
+    background-color: #ffffff; 
+    border-radius: 12px; 
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05); 
 }
 
 /* --- 4. עיצוב טופס הכניסה --- */
 #login-container {
-    max-width: 400px; /* קטן יותר ומרכזי */
+    max-width: 400px; 
     margin-top: 80px;
 }
-
 .login-field {
     margin-bottom: 15px;
     text-align: right;
 }
-
 .login-field label {
     display: block;
     margin-bottom: 5px;
     font-weight: 500;
 }
 
-/* עיצוב אחיד לכל שדות הקלט */
+/* --- 5. עיצוב אחיד לכל שדות הקלט --- */
 input[type="text"],
 input[type="password"],
 input[type="date"],
@@ -77,17 +67,15 @@ select {
     font-family: 'Rubik', Arial, sans-serif;
     transition: border-color 0.3s, box-shadow 0.3s;
 }
-
-/* אפקט פוקוס יפה */
 input:focus, select:focus {
     border-color: #007bff;
     box-shadow: 0 0 5px rgba(0,123,255,0.25);
     outline: none;
 }
 
-/* --- 5. עיצוב כפתורים --- */
+/* --- 6. עיצוב כפתורים --- */
 button, #login-btn {
-    background-color: #007bff; /* צבע רקע כחול */
+    background-color: #007bff; 
     color: white;
     font-weight: 500;
     font-size: 1em;
@@ -97,18 +85,16 @@ button, #login-btn {
     cursor: pointer;
     transition: background-color 0.3s ease, transform 0.2s;
 }
-
 button:hover, #login-btn:hover {
-    background-color: #0056b3; /* כחול כהה יותר במעבר עכבר */
-    transform: translateY(-2px); /* הרמה קלה */
+    background-color: #0056b3; 
+    transform: translateY(-2px); 
 }
-
 button:disabled, #login-btn:disabled {
     background-color: #aaa;
     cursor: not-allowed;
 }
 
-/* --- 6. עיצוב טופס החיפוש --- */
+/* --- 7. עיצוב טופס החיפוש --- */
 .search-form {
     display: flex;
     flex-wrap: wrap;
@@ -120,87 +106,95 @@ button:disabled, #login-btn:disabled {
 .search-form label {
     font-weight: 500;
 }
-/* התאמת רוחב שדות בטופס החיפוש */
 .search-form input, .search-form select {
     width: auto;
     min-width: 150px;
 }
 
-/* --- 7. עיצוב התוצאות והנגן --- */
+/* --- 8. עיצוב התוצאות והנגן --- */
 .results {
     border-top: 1px solid #eee;
     padding-top: 20px;
 }
-
 #results-list li {
-    display: flex; /* מסדר את הקישור והנגן בשורה */
+    display: flex; 
     flex-wrap: wrap;
-    justify-content: space-between; /* רווח ביניהם */
+    justify-content: space-between; 
     align-items: center;
     padding: 15px;
     margin-bottom: 10px;
     border-bottom: 1px solid #f0f0f0;
     transition: background-color 0.2s;
 }
-
 #results-list li:hover {
     background-color: #f9f9f9;
 }
-
 #results-list a {
     text-decoration: none;
     color: #0056b3;
     font-weight: 500;
     font-size: 1.1em;
 }
-
 audio {
-    max-width: 100%; /* מונע מהנגן לגלוש */
-    border-radius: 50px; /* מעגל את הנגן (תלוי בדפדפן) */
+    max-width: 100%; 
+    border-radius: 50px; 
     margin-top: 10px;
 }
 
-/* --- 8. עיצוב הודעות --- */
+/* --- 9. עיצוב הודעות --- */
 #loading {
     text-align: center;
     display: none;
-    color: #28a745; /* ירוק */
+    color: #28a745; 
     font-weight: 500;
     font-size: 1.2em;
 }
-
 #login-message {
-    color: #dc3545; /* אדום */
+    color: #dc3545; 
     min-height: 1.2em;
     font-weight: 500;
 }
 
-/* כלי עזר להסתרה */
+/* --- 10. עיצוב כפתור הורדה (כחול) --- */
+.download-button {
+    background-color: #007bff; /* צבע כחול (כמו כפתור 'חפש') */
+    color: white !important; /* צבע טקסט לבן (חשוב כדי לדרוס צבע קישור) */
+    padding: 8px 14px;
+    border-radius: 6px;
+    text-decoration: none; /* מסתיר את הקו התחתון של הקישור */
+    font-size: 0.9em;
+    font-weight: 500;
+    transition: background-color 0.3s ease, transform 0.2s;
+    margin-right: 10px; /* מרחיק אותו מעט משאר האלמנטים */
+}
+.download-button:hover {
+    background-color: #0056b3; /* כחול כהה יותר */
+    color: white !important;
+    transform: translateY(-2px); 
+}
+
+/* --- 11. כלי עזר להסתרה --- */
 .hidden {
     display: none !important;
 }
 
-/* --- 9. עיצוב רספונסיבי למובייל --- */
+/* --- 12. עיצוב רספונסיבי למובייל --- */
 @media (max-width: 768px) {
     body {
         padding: 10px;
     }
-    
     #login-container, #main-content {
         padding: 15px;
     }
-
     .search-form {
-        flex-direction: column; /* הופך את הטופס לטור */
+        flex-direction: column; 
         gap: 20px;
     }
-
     .search-form input, .search-form select, .search-form button {
-        width: 90%; /* רוחב מלא */
+        width: 90%; 
     }
-
     #results-list li {
-        flex-direction: column; /* מסדר את הנגן מתחת לקישור */
+        flex-direction: column; 
         align-items: flex-start;
     }
 }
