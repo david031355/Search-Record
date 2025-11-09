@@ -1,48 +1,68 @@
 const express = require('express');
-// ייבוא fetch בצורה יציבה (גרסה 2)
 const fetchModule = require('node-fetch');
 const fetch = fetchModule.default || fetchModule;
 const path = require('path');
 const { JSDOM } = require('jsdom');
 
 const app = express();
-// הפורט נקבע על ידי Render
 const PORT = process.env.PORT || 3000; 
 
 // ******************************************************************
-// ⚠️ נקודות קריטיות לחיבור:
+// ⚠️ הגדרות אבטחה וחיבור
 // ******************************************************************
 const REMOTE_RECORDING_SERVER_URL = 'http://164.68.127.36/'; 
-// עליך להחליף את הכתובת הזו ב-IP או בדומיין האמיתי של שרת ההקלטות שלך!
+// (החלף ב-IP הנכון!)
 
-// Render מספק את ה-HTTPS URL שלו אוטומטית (חיוני להזרמה)
-const RENDER_PUBLIC_URL = process.env.RENDER_EXTERNAL_URL; 
-
-// ערכים אלו נקראים ממשתני הסביבה (Environment Variables) ב-Render
-const VALID_USERNAME = process.env.AUTH_USER || 'admin'; 
-const VALID_PASSWORD = process.env.AUTH_PASS || '12345';
+// --- בניית רשימת משתמשים מורשים ---
+const VALID_USERS = [];
+if (process.env.AUTH_USER && process.env.AUTH_PASS) {
+    VALID_USERS.push({
+        username: process.env.AUTH_USER,
+        password: process.env.AUTH_PASS
+    });
+}
+if (process.env.AUTH_USER_2 && process.env.AUTH_PASS_2) {
+    VALID_USERS.push({
+        username: process.env.AUTH_USER_2,
+        password: process.env.AUTH_PASS_2
+    });
+}
+if (VALID_USERS.length === 0) {
+    VALID_USERS.push({ username: 'admin', password: '12345' });
+}
 // ******************************************************************
 
-// הגשת קבצים סטטיים (index.html, app.js, style.css) משורש הפרויקט
 app.use(express.static(__dirname)); 
 
-// נקודת ה-API לחיפוש
 app.get('/search', async (req, res) => {
-    // 1. קבלת פרמטרי אימות וחיפוש
     const { station, date, hour, user, pass } = req.query; 
 
-    // 2. אכיפת האימות (חובה)
-    if (user !== VALID_USERNAME || pass !== VALID_PASSWORD) {
+    const isAuthenticated = VALID_USERS.some(validUser => {
+        return validUser.username === user && validUser.password === pass;
+    });
+
+    if (!isAuthenticated) {
         return res.status(401).json({ error: 'שם משתמש או סיסמה שגויים.' });
     }
     
-    // 3. בדיקות חובה לאחר האימות
     if (!station || !date) {
         return res.status(400).json({ error: 'Missing station or date parameters' });
     }
 
-    // 4. בניית נתיב לשרת ההקלטות
-    const [year, month, day] = date.split('-'); 
+    // ***************************************************************
+    // ✨ התיקון: הסרת אפסים מובילים מחודש ויום ✨
+    // ***************************************************************
+    const dateParts = date.split('-'); // לדוגמה: ['2025', '11', '09']
+    const year = dateParts[0];
+    
+    // המרה למספר וחזרה למחרוזת מסירה את האפס המוביל
+    // '11' -> 11 -> '11'
+    // '09' -> 9 -> '9'
+    const month = parseInt(dateParts[1], 10).toString(); 
+    const day = parseInt(dateParts[2], 10).toString();   
+    // ***************************************************************
+
+    // 4. בניית נתיב לשרת ההקלטות (עם הנתונים המתוקנים)
     const targetDirectoryUrl = `${REMOTE_RECORDING_SERVER_URL}/${station}/${year}/${month}/${day}/`;
 
     try {
@@ -64,8 +84,7 @@ app.get('/search', async (req, res) => {
             if ((href.endsWith('.mp3') || href.endsWith('.wav'))) {
                 recordings.push({
                     name: link.textContent,
-                    // יצירת נתיב שמשתמש ב-HTTPS URL של Render
-                    path: `${RENDER_PUBLIC_URL}/recordings/${station}/${year}/${month}/${day}/${href}` 
+                    path: `${process.env.RENDER_EXTERNAL_URL}/recordings/${station}/${year}/${month}/${day}/${href}` 
                 });
             }
         });
@@ -98,17 +117,15 @@ app.get('/search', async (req, res) => {
 });
 
 // ***************************************************************
-// Reverse Proxy להזרמת קבצי מדיה דרך Render (הכרחי ל-HTTPS!)
+// Reverse Proxy להזרמת קבצי מדיה
 // ***************************************************************
 app.use('/recordings', async (req, res) => {
-    // בונה את ה-URL המלא לשרת ההקלטות המקורי
     const remoteUrl = REMOTE_RECORDING_SERVER_URL + req.originalUrl.replace('/recordings', '');
     try {
         const response = await fetch(remoteUrl);
         if (!response.ok) {
             return res.status(response.status).send('Failed to stream file');
         }
-        // העברת הכותרות וזרם הקובץ ישירות לדפדפן
         response.headers.forEach((value, name) => res.set(name, value));
         response.body.pipe(res);
     } catch (error) {
