@@ -2,9 +2,11 @@
 :root {
     --primary-color: #007bff;
     --primary-hover: #0056b3;
+    --secondary-color: #17a2b8; /* טורקיז להאזנה */
+    --secondary-hover: #138496;
     --text-color: #333;
     --text-light: #555;
-    --player-height: 90px; /* גובה הנגן החדש */
+    --player-height: 90px;
 }
 
 body {
@@ -15,7 +17,6 @@ body {
     direction: rtl;
     margin: 0;
     padding: 20px;
-    /* ✨ ריפוד תחתון כדי שהנגן לא יסתיר תוכן ✨ */
     padding-bottom: var(--player-height); 
 }
 
@@ -145,9 +146,8 @@ button:disabled, #login-btn:disabled {
     font-weight: 500;
     font-size: 1.1em;
 }
-/* הסתרת הנגן הישן (אם בטעות נוצר) */
 audio {
-    display: none;
+    display: none; /* הנגן הראשי מטפל בזה */
 }
 
 /* --- 9. עיצוב הודעות --- */
@@ -164,9 +164,13 @@ audio {
     font-weight: 500;
 }
 
-/* --- 10. עיצוב כפתור הורדה --- */
-.download-button {
-    background-color: #007bff; 
+/* --- 10. ✨ עיצוב כפתורי האזנה והורדה (חדש) ✨ --- */
+.result-actions {
+    display: flex;
+    gap: 10px; /* רווח בין כפתור האזנה להורדה */
+}
+
+.btn-listen, .download-button {
     color: white !important; 
     padding: 8px 14px;
     border-radius: 6px;
@@ -174,37 +178,34 @@ audio {
     font-size: 0.9em;
     font-weight: 500;
     transition: background-color 0.3s ease, transform 0.2s;
-    margin-right: 10px; 
+    display: inline-flex;
+    align-items: center;
+    gap: 8px; /* רווח בין האייקון לטקסט */
+    border: none;
+    cursor: pointer;
 }
-.download-button:hover {
-    background-color: #0056b3; 
+
+.btn-listen:hover, .download-button:hover {
     color: white !important;
     transform: translateY(-2px); 
 }
 
-/* --- ✨ 11. עיצוב כפתור "האזנה" החדש ✨ --- */
+/* צבעים שונים לכל כפתור */
 .btn-listen {
-    background-color: #17a2b8; /* צבע טורקיז/כחול-ירוק */
-    color: white;
-    font-size: 0.9em;
-    font-weight: 500;
-    padding: 8px 14px;
-    border-radius: 6px;
-    cursor: pointer;
-    transition: background-color 0.3s ease, transform 0.2s;
-    border: none;
-    margin-right: 10px; 
-    display: inline-flex;
-    align-items: center;
-    gap: 8px; /* רווח בין האייקון לטקסט */
+    background-color: var(--secondary-color); /* טורקיז */
 }
 .btn-listen:hover {
-    background-color: #138496;
-    transform: translateY(-2px);
+    background-color: var(--secondary-hover);
+}
+.download-button {
+    background-color: var(--primary-color); /* כחול */
+}
+.download-button:hover {
+    background-color: var(--primary-hover); 
 }
 
 
-/* --- ✨ 12. עיצוב הנגן הקבוע החדש (מהקוד שלך) ✨ --- */
+/* --- 11. עיצוב הנגן הקבוע --- */
 .persistent-player {
     position: fixed;
     bottom: 0;
@@ -220,10 +221,10 @@ audio {
     justify-content: space-between;
     padding: 0 25px;
     box-sizing: border-box;
-    direction: ltr; /* חשוב לשמור על כיוון הנגן משמאל לימין */
+    direction: ltr;
     transform: translateY(100%);
     transition: transform 0.3s ease-out;
-    z-index: 1000; /* לוודא שהוא תמיד למעלה */
+    z-index: 1000;
 }
 .persistent-player.visible {
     transform: translateY(0);
@@ -271,13 +272,19 @@ audio {
     background: none;
     border: none;
     cursor: pointer;
-    font-size: 1.2em; /* הוקטן מעט */
+    font-size: 1.2em;
     color: var(--text-color);
     width: 40px;
     text-align: center;
+    /* ✨ הסרת הריבוע הכחול/שחור בפוקוס ✨ */
+    outline: none;
+}
+.player-btn:focus, .player-btn:active {
+    outline: none;
+    box-shadow: none;
 }
 .player-btn#player-play-pause {
-    font-size: 2.0em; /* הוקטן מעט */
+    font-size: 2.0em;
     color: var(--primary-color);
 }
 .player-btn:hover { color: var(--primary-hover); }
@@ -308,6 +315,7 @@ audio {
     outline: none;
     cursor: pointer;
 }
+/* ... (שאר עיצוב הסליידרים נשאר זהה) ... */
 #player-seek-slider::-webkit-slider-thumb {
     -webkit-appearance: none;
     appearance: none;
@@ -330,7 +338,7 @@ audio {
     display: flex;
     align-items: center;
     gap: 10px;
-    min-width: 150px; /* הוקטן */
+    min-width: 150px;
     justify-content: flex-end;
 }
 .player-volume-controls i {
@@ -340,7 +348,7 @@ audio {
 #player-volume-slider {
     -webkit-appearance: none;
     appearance: none;
-    width: 80px; /* הוקטן */
+    width: 80px;
     height: 4px;
     background: #ddd;
     border-radius: 5px;
@@ -365,16 +373,16 @@ audio {
 }
 
 
-/* --- 13. כלי עזר להסתרה --- */
+/* --- 12. כלי עזר להסתרה --- */
 .hidden {
     display: none !important;
 }
 
-/* --- 14. עיצוב רספונסיבי למובייל --- */
+/* --- 13. עיצוב רספונסיבי למובייל --- */
 @media (max-width: 768px) {
     body {
         padding: 10px;
-        padding-bottom: calc(var(--player-height) + 10px); /* עדכון ריפוד למובייל */
+        padding-bottom: calc(var(--player-height) + 10px); 
     }
     #login-container, #main-content {
         padding: 15px;
@@ -386,20 +394,28 @@ audio {
     .search-form input, .search-form select, .search-form button {
         width: 90%; 
     }
+    
+    /* ✨ עדכון תוצאות החיפוש למובייל ✨ */
     #results-list li {
         flex-direction: column; 
         align-items: flex-start;
-        gap: 10px; /* רווח בין הכפתורים במובייל */
+        gap: 12px; /* רווח בין שם הקובץ לכפתורים */
+    }
+    /* סידור הכפתורים בשורה גם במובייל */
+    .result-actions {
+        display: flex;
+        gap: 10px;
+        width: 100%;
     }
     
     /* התאמות לנגן במובייל */
     .persistent-player {
         padding: 0 10px;
-        height: 80px; /* נגן נמוך יותר במובייל */
+        height: 80px; 
     }
     .player-episode-info {
         min-width: 0;
-        flex-basis: 150px; /* הגדרת בסיס */
+        flex-basis: 150px;
     }
     #player-episode-art {
         width: 45px;
@@ -409,7 +425,7 @@ audio {
         font-size: 0.9em;
     }
     .player-volume-controls {
-        display: none; /* הסתרת ווליום במובייל לטובת מקום */
+        display: none; 
     }
     .player-main-controls {
         padding: 0 5px;
