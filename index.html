@@ -19,20 +19,23 @@
     <div id="login-container">
         <h2>כניסת משתמש</h2>
         <p id="login-message"></p>
+        
         <div class="login-field">
             <label for="initial-username">שם משתמש:</label>
             <input type="text" id="initial-username" required>
         </div>
+        
         <div class="login-field">
             <label for="initial-password">סיסמה:</label>
             <input type="password" id="initial-password" required>
         </div>
+        
         <button id="login-btn">כניסה</button>
     </div>
 
     <div id="main-content" class="hidden">
         <h1>חיפוש הקלטות רדיו 📻</h1>
-        <p class="subtitle">(המערכת רצה משרת ענן)</p>
+        <p class="subtitle">פותח בלעדית עבור חיים קורץ - כל הזכויות שמורות ©</p>
 
         <form id="search-form" class="search-form">
             <label for="station">בחר תחנה:</label>
@@ -42,13 +45,18 @@
                 <option value="kol_play">קול פליי</option>
                 <option value="kolbarama">קול ברמה</option>
             </select>
+
             <label for="date">בחר תאריך:</label>
             <input type="date" id="date" required>
+
             <label for="hour">בחר שעה (אופציונלי):</label>
             <input type="number" id="hour" min="0" max="23" placeholder="כל השעות">
+            
             <button type="submit">חפש</button> 
         </form>
+
         <hr>
+
         <div class="results">
             <h2>תוצאות חיפוש:</h2>
             <div id="loading">... טוען הקלטות מהשרת המרוחק...</div>
@@ -60,7 +68,8 @@
         <audio id="main-player"></audio>
         
         <div class="player-episode-info">
-            <img id="player-episode-art" src="data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs=" alt=""> <span id="player-episode-title">בחר הקלטה להאזנה...</span>
+            <img id="player-episode-art" src="data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs=" alt="">
+            <span id="player-episode-title">בחר הקלטה להאזנה...</span>
         </div>
         
         <div class="player-main-controls">
