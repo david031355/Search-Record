@@ -1,20 +1,9 @@
-// ******************************************************************
-// ⚠️ חשוב! השאר את הכתובת ריקה
-// זה גורם לדפדפן לשלוח את הבקשה לאותו שרת (Render)
-// ******************************************************************
 const PROXY_SERVER_URL = 'https://search-record.onrender.com'; 
-// ******************************************************************
-
-/**
- * פונקציית עזר: שולחת בקשת אימות לבדיקת תקפות פרטי המשתמש מול השרת
- */
 const sendAuthRequest = async (username, password) => {
     
-    // **תיקון קריטי: קידוד פרטי הכניסה (במיוחד לעברית)**
     const encodedUser = encodeURIComponent(username);
     const encodedPass = encodeURIComponent(password);
     
-    // שולח בקשת חיפוש 'ריקה' (עם נתונים בסיסיים) רק כדי לאכוף את האימות בשרת
     const testUrl = `${PROXY_SERVER_URL}/search?user=${encodedUser}&pass=${encodedPass}&station=kcm&date=2024-01-01`;
 
     try {
@@ -26,21 +15,51 @@ const sendAuthRequest = async (username, password) => {
     }
 };
 
+/**
+ * פונקציית עזר: פורמט זמן (מ- 123 שניות ל- 2:03)
+ */
+function formatTime(seconds) {
+    const minutes = Math.floor(seconds / 60);
+    const secs = Math.floor(seconds % 60);
+    return `${minutes}:${secs < 10 ? '0' : ''}${secs}`;
+}
+
 
 /**
  * קוד ראשי שרץ כשהדף נטען
  */
 document.addEventListener('DOMContentLoaded', async () => {
+    // --- 1. בחירת רכיבי DOM ---
+    
+    // רכיבי כניסה
     const loginContainer = document.getElementById('login-container');
     const mainContent = document.getElementById('main-content');
     const loginBtn = document.getElementById('login-btn');
     const loginMessage = document.getElementById('login-message');
+    
+    // רכיבי חיפוש
     const searchForm = document.getElementById('search-form'); 
     const resultsList = document.getElementById('results-list');
     const loadingDiv = document.getElementById('loading');
     
+    // ✨ רכיבי הנגן הקבוע (מהקוד שלך) ✨
+    const playerContainer = document.getElementById('persistent-player');
+    const player = document.getElementById('main-player');
+    const playPauseBtn = document.getElementById('player-play-pause');
+    const playIcon = '<i class="fas fa-play"></i>';
+    const pauseIcon = '<i class="fas fa-pause"></i>';
+    const skipForwardBtn = document.getElementById('player-skip-forward');
+    const skipBackwardBtn = document.getElementById('player-skip-backward');
+    const volumeSlider = document.getElementById('player-volume-slider');
+    const seekSlider = document.getElementById('player-seek-slider');
+    const playerTitle = document.getElementById('player-episode-title');
+    const playerArt = document.getElementById('player-episode-art');
+    const currentTimeDisplay = document.getElementById('player-current-time');
+    const totalTimeDisplay = document.getElementById('player-total-time');
+
+    
     // ----------------------------------------------------
-    // 1. לוגיקת טעינה ובדיקת סשן
+    // 2. לוגיקת טעינה ובדיקת סשן
     // ----------------------------------------------------
     const checkSession = async () => {
         const storedUser = sessionStorage.getItem('radioUser');
@@ -63,7 +82,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
 
     // ----------------------------------------------------
-    // 2. מטפל בלחיצה על כפתור הכניסה
+    // 3. מטפל בלחיצה על כפתור הכניסה
     // ----------------------------------------------------
     loginBtn.addEventListener('click', async () => {
         const user = document.getElementById('initial-username').value;
@@ -75,7 +94,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (await sendAuthRequest(user, pass)) {
             sessionStorage.setItem('radioUser', user);
             sessionStorage.setItem('radioPass', pass);
-
             loginContainer.classList.add('hidden');
             mainContent.classList.remove('hidden');
         } else {
@@ -85,17 +103,15 @@ document.addEventListener('DOMContentLoaded', async () => {
     });
 
     // ----------------------------------------------------
-    // 3. לוגיקת חיפוש (לאחר שהמשתמש מחובר)
+    // 4. לוגיקת חיפוש (לאחר שהמשתמש מחובר)
     // ----------------------------------------------------
     searchForm.addEventListener('submit', async (event) => {
         event.preventDefault(); 
         
         const username = sessionStorage.getItem('radioUser');
         const password = sessionStorage.getItem('radioPass');
-        
         const encodedUser = encodeURIComponent(username);
         const encodedPass = encodeURIComponent(password);
-
         const station = document.getElementById('station').value;
         const date = document.getElementById('date').value;
         const hour = document.getElementById('hour').value;
@@ -110,10 +126,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         loadingDiv.style.display = 'block';
 
         let searchUrl = `${PROXY_SERVER_URL}/search?user=${encodedUser}&pass=${encodedPass}&station=${station}&date=${date}`;
-        
-        if (hour !== '') {
-            searchUrl += `&hour=${hour}`;
-        }
+        if (hour !== '') searchUrl += `&hour=${hour}`;
 
         try {
             const response = await fetch(searchUrl);
@@ -129,7 +142,6 @@ document.addEventListener('DOMContentLoaded', async () => {
             }
 
             const files = await response.json(); 
-
             loadingDiv.style.display = 'none';
 
             if (files.length === 0) {
@@ -145,22 +157,25 @@ document.addEventListener('DOMContentLoaded', async () => {
                     fileLink.textContent = file.name;
                     fileLink.target = '_blank';
                     
-                    // 2. הנגן
-                    const audio = document.createElement('audio');
-                    audio.controls = true;
-                    audio.src = file.path;
-
-                    // 3. כפתור ההורדה
+                    // 2. כפתור ההורדה
                     const downloadBtn = document.createElement('a');
                     downloadBtn.href = file.path; 
                     downloadBtn.textContent = 'הורדה'; 
                     downloadBtn.setAttribute('download', file.name); 
                     downloadBtn.className = 'download-button';
 
+                    // 3. ✨ כפתור "האזנה" החדש ✨
+                    const playBtn = document.createElement('button');
+                    playBtn.className = 'btn-listen'; // קלאס לזיהוי בלחיצה
+                    playBtn.innerHTML = '<i class="fas fa-play"></i> האזנה';
+                    playBtn.setAttribute('data-src', file.path); // שמירת הנתיב
+                    playBtn.setAttribute('data-title', file.name); // שמירת השם
+                    playBtn.setAttribute('data-image-src', ''); // תמונה ריקה
+
                     // הוספת כל הרכיבים לרשימה
                     listItem.appendChild(fileLink);
-                    listItem.appendChild(audio);
                     listItem.appendChild(downloadBtn); 
+                    listItem.appendChild(playBtn);
                     
                     resultsList.appendChild(listItem);
                 });
@@ -171,4 +186,90 @@ document.addEventListener('DOMContentLoaded', async () => {
             console.error('Error fetching files:', error);
         }
     });
+    
+    // ----------------------------------------------------
+    // 5. ✨ לוגיקת הנגן הקבוע (מהקוד שלך, משולבת) ✨
+    // ----------------------------------------------------
+    
+    // --- א. האזנה לכפתורי "האזנה" (בשיטת Event Delegation) ---
+    resultsList.addEventListener('click', function(event) {
+        // בודק אם הלחיצה הייתה על כפתור עם הקלאס 'btn-listen'
+        const playButton = event.target.closest('.btn-listen');
+        
+        if (playButton) {
+            const src = playButton.getAttribute('data-src');
+            const title = playButton.getAttribute('data-title');
+            const imageSrc = playButton.getAttribute('data-image-src');
+            
+            player.src = src;
+            playerTitle.textContent = title;
+            playerArt.src = imageSrc || 'data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs='; // תמונה ריקה
+            
+            player.load();
+            player.play();
+            
+            playerContainer.classList.add('visible'); // מציג את הנגן
+        }
+    });
+
+    // --- ב. חיבור כפתורי הנגן (מהקוד שלך) ---
+    function togglePlayPause() {
+        if (player.src && (player.paused || player.ended)) {
+            player.play();
+        } else {
+            player.pause();
+        }
+    }
+    
+    playPauseBtn.addEventListener('click', togglePlayPause);
+    player.addEventListener('play', () => { playPauseBtn.innerHTML = pauseIcon; });
+    player.addEventListener('pause', () => { playPauseBtn.innerHTML = playIcon; });
+    player.addEventListener('ended', () => { playPauseBtn.innerHTML = playIcon; });
+    
+    skipForwardBtn.addEventListener('click', () => { if(player.src) player.currentTime += 30; });
+    skipBackwardBtn.addEventListener('click', () => { if(player.src) player.currentTime -= 10; });
+    
+    volumeSlider.addEventListener('input', (e) => { player.volume = e.target.value; });
+    
+    player.addEventListener('timeupdate', () => {
+        if (player.duration) {
+            seekSlider.value = player.currentTime;
+            currentTimeDisplay.textContent = formatTime(player.currentTime);
+        }
+    });
+    
+    player.addEventListener('loadedmetadata', () => {
+        seekSlider.max = player.duration;
+        totalTimeDisplay.textContent = formatTime(player.duration);
+    });
+    
+    seekSlider.addEventListener('input', () => {
+        if(player.src) player.currentTime = seekSlider.value;
+    });
+
+    // --- ג. קיצורי מקלדת (מהקוד שלך) ---
+    document.addEventListener('keydown', e => {
+        // אל תפעל אם המשתמש מקליד בתיבת טקסט
+        if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') {
+            return;
+        }
+        // רק אם הנגן פעיל
+        if (!player.src) {
+            return;
+        }
+        
+        switch(e.code) {
+            case 'Space':
+                e.preventDefault();
+                togglePlayPause();
+                break;
+            case 'ArrowRight':
+                player.currentTime += 30;
+                break;
+            case 'ArrowLeft':
+                player.currentTime -= 10;
+                break;
+        }
+    });
+    
 });
