@@ -1,10 +1,5 @@
-// ******************************************************************
-// ⚠️ כתובת זו חייבת להיות ה-URL הציבורי של Render (או ריקה אם רץ על Render)
-// ******************************************************************
-const PROXY_SERVER_URL = ''; 
-// ******************************************************************
 
-// ✨ מפה של מזהי תחנות לנתיבי לוגו מקומיים ✨
+const PROXY_SERVER_URL = 'https://search-record.onrender.com/'; 
 const LOGO_MAP = {
     'kcm': 'img/kcm.svg',
     'kol_chai': 'img/kol_chai.svg',
@@ -118,7 +113,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     });
 
     // ----------------------------------------------------
-    // 4. לוגיקת חיפוש (✨ מעודכנת ✨)
+    // 4. לוגיקת חיפוש (✨ מעודכנת - תיקון באג שעה ✨)
     // ----------------------------------------------------
     searchForm.addEventListener('submit', async (event) => {
         event.preventDefault(); 
@@ -175,17 +170,26 @@ document.addEventListener('DOMContentLoaded', async () => {
                     fileLink.textContent = file.name;
                     fileLink.target = '_blank';
                     
-                    // --- ✨ 2. יצירת מטא-דאטה (חדש) ✨ ---
+                    // --- 2. יצירת מטא-דאטה (תיקון באג השעה) ---
                     const metadataDiv = document.createElement('div');
                     metadataDiv.className = 'result-metadata';
                     
-                    const [year, month, day] = date.split('-'); // מתוך הטופס
+                    const [year, monthRaw, dayRaw] = date.split('-'); // מתוך הטופס
+                    const month = parseInt(monthRaw, 10).toString(); // '09' -> '9'
+                    const day = parseInt(dayRaw, 10).toString(); // '09' -> '9'
+                    
                     let fileHour = '??';
-                    const hourMatch = file.name.slice(0, -4).match(/(\d{1,2})$/);
-                    if (hourMatch) {
-                        fileHour = hourMatch[1].padStart(2, '0'); // מרפד ל-00:00
+                    
+                    // ✨ לוגיקה חדשה לחילוץ השעה ✨
+                    // יוצר את הקידומת הצפויה של שם הקובץ, למשל "kcm20251116"
+                    const prefix = station + year + month + day;
+                    // מסיר את הקידומת ואת הסיומת, משאיר רק את השעה
+                    const fileHourStr = file.name.slice(0, -4).replace(prefix, '');
+                    
+                    if (fileHourStr !== "") {
+                        fileHour = fileHourStr.padStart(2, '0'); // מרפד ל-00:00
                     }
-                    metadataDiv.textContent = `תאריך: ${day}/${month}/${year} | שעה: ${fileHour}:00`;
+                    metadataDiv.textContent = `תאריך: ${dayRaw}/${monthRaw}/${year} | שעה: ${fileHour}:00`;
                     // --- סוף מטא-דאטה ---
 
                     // 3. יוצר "עוטף" לכפתורים
@@ -198,14 +202,14 @@ document.addEventListener('DOMContentLoaded', async () => {
                     playBtn.innerHTML = '<i class="fas fa-play"></i> האזנה';
                     playBtn.setAttribute('data-src', file.path); 
                     playBtn.setAttribute('data-title', file.name); 
-                    playBtn.setAttribute('data-image-src', imageSrc); // מעביר את התמונה לנגן
+                    playBtn.setAttribute('data-image-src', imageSrc); 
                     
                     // 5. כפתור ההורדה
                     const downloadBtn = document.createElement('a');
                     downloadBtn.href = file.path; 
                     downloadBtn.setAttribute('download', file.name); 
                     downloadBtn.className = 'download-button';
-                    downloadBtn.innerHTML = '<i class="fas fa-download"></i> הורדה'; // אייקון הורדה
+                    downloadBtn.innerHTML = '<i class="fas fa-download"></i> הורדה'; 
 
                     // הוספת הכפתורים ל"עוטף"
                     actionsWrapper.appendChild(playBtn);
@@ -213,7 +217,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
                     // הוספת הרכיבים לרשימה
                     listItem.appendChild(fileLink);
-                    listItem.appendChild(metadataDiv); // הוספת המטא-דאטה
+                    listItem.appendChild(metadataDiv); 
                     listItem.appendChild(actionsWrapper);
                     
                     resultsList.appendChild(listItem);
@@ -230,7 +234,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     // 5. לוגיקת הנגן הקבוע
     // ----------------------------------------------------
     
-    // --- א. האזנה לכפתורי "האזנה" (בשיטת Event Delegation) ---
+    // --- א. האזנה לכפתורי "האזנה" ---
     resultsList.addEventListener('click', function(event) {
         const playButton = event.target.closest('.btn-listen');
         
@@ -285,15 +289,13 @@ document.addEventListener('DOMContentLoaded', async () => {
         if(player.src) player.currentTime = seekSlider.value;
     });
 
-    // --- ג. ✨ שליטת ווליום עם גלגלת העכבר (חדש) ✨ ---
+    // --- ג. שליטת ווליום עם גלגלת העכבר ---
     playerContainer.addEventListener('wheel', e => {
-        // מונע גלילה של הדף כשהעכבר על הנגן
         e.preventDefault();
-        
         let volume = player.volume;
-        if (e.deltaY < 0) { // גלגלת למעלה = הגברת ווליום
+        if (e.deltaY < 0) { 
             volume = Math.min(1, volume + 0.1);
-        } else { // גלגלת למטה = הנמכת ווליום
+        } else { 
             volume = Math.max(0, volume - 0.1);
         }
         player.volume = volume;
