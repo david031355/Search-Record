@@ -1,4 +1,17 @@
 const PROXY_SERVER_URL = 'https://search-record.onrender.com'; 
+
+const LOGO_MAP = {
+    'kcm': 'img/kcm.svg',
+    'kol_chai': 'img/kol_chai.svg',
+    'kolbarama': 'img/kol_barama.png',
+    'kol_play': 'img/kol_play.png',
+    'default': 'img/default.png' // תמונת ברירת מחדל
+};
+
+
+/**
+ * פונקציית עזר: שולחת בקשת אימות לבדיקת תקפות פרטי המשתמש מול השרת
+ */
 const sendAuthRequest = async (username, password) => {
     
     const encodedUser = encodeURIComponent(username);
@@ -31,18 +44,15 @@ function formatTime(seconds) {
 document.addEventListener('DOMContentLoaded', async () => {
     // --- 1. בחירת רכיבי DOM ---
     
-    // רכיבי כניסה
     const loginContainer = document.getElementById('login-container');
     const mainContent = document.getElementById('main-content');
     const loginBtn = document.getElementById('login-btn');
     const loginMessage = document.getElementById('login-message');
     
-    // רכיבי חיפוש
     const searchForm = document.getElementById('search-form'); 
     const resultsList = document.getElementById('results-list');
     const loadingDiv = document.getElementById('loading');
     
-    // ✨ רכיבי הנגן הקבוע (מהקוד שלך) ✨
     const playerContainer = document.getElementById('persistent-player');
     const player = document.getElementById('main-player');
     const playPauseBtn = document.getElementById('player-play-pause');
@@ -59,7 +69,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     
     // ----------------------------------------------------
-    // 2. לוגיקת טעינה ובדיקת סשן
+    // 2. לוגיקת טעינה ובדיקת סשן (ללא שינוי)
     // ----------------------------------------------------
     const checkSession = async () => {
         const storedUser = sessionStorage.getItem('radioUser');
@@ -82,7 +92,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
 
     // ----------------------------------------------------
-    // 3. מטפל בלחיצה על כפתור הכניסה
+    // 3. מטפל בלחיצה על כפתור הכניסה (ללא שינוי)
     // ----------------------------------------------------
     loginBtn.addEventListener('click', async () => {
         const user = document.getElementById('initial-username').value;
@@ -103,7 +113,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     });
 
     // ----------------------------------------------------
-    // 4. לוגיקת חיפוש (לאחר שהמשתמש מחובר)
+    // 4. לוגיקת חיפוש (✨ מעודכנת ✨)
     // ----------------------------------------------------
     searchForm.addEventListener('submit', async (event) => {
         event.preventDefault(); 
@@ -112,9 +122,13 @@ document.addEventListener('DOMContentLoaded', async () => {
         const password = sessionStorage.getItem('radioPass');
         const encodedUser = encodeURIComponent(username);
         const encodedPass = encodeURIComponent(password);
+        
         const station = document.getElementById('station').value;
         const date = document.getElementById('date').value;
         const hour = document.getElementById('hour').value;
+        
+        // ✨ שולף את התמונה המתאימה מהמפה ✨
+        const imageSrc = LOGO_MAP[station] || LOGO_MAP['default'];
         
         if (!date || !username || !password) {
             sessionStorage.clear();
@@ -157,25 +171,32 @@ document.addEventListener('DOMContentLoaded', async () => {
                     fileLink.textContent = file.name;
                     fileLink.target = '_blank';
                     
-                    // 2. כפתור ההורדה
+                    // ✨ 2. יוצר "עוטף" לכפתורים ✨
+                    const actionsWrapper = document.createElement('div');
+                    actionsWrapper.className = 'result-actions';
+
+                    // 3. כפתור "האזנה"
+                    const playBtn = document.createElement('button');
+                    playBtn.className = 'btn-listen'; 
+                    playBtn.innerHTML = '<i class="fas fa-play"></i> האזנה';
+                    playBtn.setAttribute('data-src', file.path); 
+                    playBtn.setAttribute('data-title', file.name); 
+                    playBtn.setAttribute('data-image-src', imageSrc); // ✨ מעביר את התמונה לנגן
+                    
+                    // 4. כפתור ההורדה
                     const downloadBtn = document.createElement('a');
                     downloadBtn.href = file.path; 
-                    downloadBtn.textContent = 'הורדה'; 
                     downloadBtn.setAttribute('download', file.name); 
                     downloadBtn.className = 'download-button';
+                    downloadBtn.innerHTML = '<i class="fas fa-download"></i> הורדה'; // ✨ אייקון הורדה
 
-                    // 3. ✨ כפתור "האזנה" החדש ✨
-                    const playBtn = document.createElement('button');
-                    playBtn.className = 'btn-listen'; // קלאס לזיהוי בלחיצה
-                    playBtn.innerHTML = '<i class="fas fa-play"></i> האזנה';
-                    playBtn.setAttribute('data-src', file.path); // שמירת הנתיב
-                    playBtn.setAttribute('data-title', file.name); // שמירת השם
-                    playBtn.setAttribute('data-image-src', ''); // תמונה ריקה
+                    // הוספת הכפתורים ל"עוטף"
+                    actionsWrapper.appendChild(playBtn);
+                    actionsWrapper.appendChild(downloadBtn); 
 
-                    // הוספת כל הרכיבים לרשימה
+                    // הוספת הרכיבים לרשימה
                     listItem.appendChild(fileLink);
-                    listItem.appendChild(downloadBtn); 
-                    listItem.appendChild(playBtn);
+                    listItem.appendChild(actionsWrapper); // הוספת ה"עוטף"
                     
                     resultsList.appendChild(listItem);
                 });
@@ -188,12 +209,11 @@ document.addEventListener('DOMContentLoaded', async () => {
     });
     
     // ----------------------------------------------------
-    // 5. ✨ לוגיקת הנגן הקבוע (מהקוד שלך, משולבת) ✨
+    // 5. לוגיקת הנגן הקבוע (ללא שינוי)
     // ----------------------------------------------------
     
     // --- א. האזנה לכפתורי "האזנה" (בשיטת Event Delegation) ---
     resultsList.addEventListener('click', function(event) {
-        // בודק אם הלחיצה הייתה על כפתור עם הקלאס 'btn-listen'
         const playButton = event.target.closest('.btn-listen');
         
         if (playButton) {
@@ -203,16 +223,16 @@ document.addEventListener('DOMContentLoaded', async () => {
             
             player.src = src;
             playerTitle.textContent = title;
-            playerArt.src = imageSrc || 'data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs='; // תמונה ריקה
+            playerArt.src = imageSrc || LOGO_MAP['default']; // ✨ משתמש בתמונה
             
             player.load();
             player.play();
             
-            playerContainer.classList.add('visible'); // מציג את הנגן
+            playerContainer.classList.add('visible'); 
         }
     });
 
-    // --- ב. חיבור כפתורי הנגן (מהקוד שלך) ---
+    // --- ב. חיבור כפתורי הנגן ---
     function togglePlayPause() {
         if (player.src && (player.paused || player.ended)) {
             player.play();
@@ -247,13 +267,11 @@ document.addEventListener('DOMContentLoaded', async () => {
         if(player.src) player.currentTime = seekSlider.value;
     });
 
-    // --- ג. קיצורי מקלדת (מהקוד שלך) ---
+    // --- ג. קיצורי מקלדת ---
     document.addEventListener('keydown', e => {
-        // אל תפעל אם המשתמש מקליד בתיבת טקסט
         if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') {
             return;
         }
-        // רק אם הנגן פעיל
         if (!player.src) {
             return;
         }
