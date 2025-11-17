@@ -7,7 +7,11 @@ const { JSDOM } = require('jsdom');
 const app = express();
 const PORT = process.env.PORT || 3000; 
 
-
+// ******************************************************************
+// ⚠️ הגדרות אבטחה וחיבור
+// ******************************************************************
+const REMOTE_RECORDING_SERVER_URL = process.env.REMOTE_RECORDING_SERVER_URL || 'http://192.168.1.10'; 
+// (השרת יקרא את ה-IP הציבורי ממשתני הסביבה)
 
 // --- בניית רשימת משתמשים מורשים ---
 const VALID_USERS = [];
@@ -23,6 +27,7 @@ if (process.env.AUTH_USER_2 && process.env.AUTH_PASS_2) {
         password: process.env.AUTH_PASS_2
     });
 }
+// אם אין משתנים מוגדרים, השתמש בברירת מחדל
 if (VALID_USERS.length === 0) {
     VALID_USERS.push({ username: 'admin', password: '12345' });
 }
@@ -31,6 +36,7 @@ if (VALID_USERS.length === 0) {
 // הגשת קבצים סטטיים משורש הפרויקט (במקום מ-public)
 app.use(express.static(__dirname)); 
 
+// נקודת ה-API לחיפוש
 app.get('/search', async (req, res) => {
     const { station, date, hour, user, pass } = req.query; 
 
@@ -41,7 +47,7 @@ app.get('/search', async (req, res) => {
     if (!isAuthenticated) {
         return res.status(401).json({ error: 'שם משתמש או סיסמה שגויים.' });
     }
-    
+
     if (!station || !date) {
         return res.status(400).json({ error: 'Missing station or date parameters' });
     }
@@ -56,7 +62,7 @@ app.get('/search', async (req, res) => {
 
     try {
         const response = await fetch(targetDirectoryUrl);
-        
+
         if (!response.ok) {
             if (response.status === 404) return res.json([]); 
             throw new Error(`Failed to fetch directory listing: HTTP ${response.status}`);
@@ -65,7 +71,7 @@ app.get('/search', async (req, res) => {
         const htmlText = await response.text();
         const dom = new JSDOM(htmlText);
         const links = dom.window.document.querySelectorAll('a');
-        
+
         let recordings = [];
 
         links.forEach(link => {
@@ -78,33 +84,34 @@ app.get('/search', async (req, res) => {
                 });
             }
         });
-        
+
         // תיקון באג סינון השעה
         if (hour) {
             const targetHour = parseInt(hour, 10);
-            
+
             if (isNaN(targetHour) || targetHour < 0 || targetHour > 23) {
                 return res.status(400).json({ error: 'שעה לא תקינה. יש לבחור מספר בין 0 ל-23.' });
             }
 
             recordings = recordings.filter(file => {
                 const fileNameWithoutExtension = file.name.slice(0, -4); 
-                
+
                 const prefix = station + year + month + day;
                 const fileHourStr = fileNameWithoutExtension.replace(prefix, '');
-                
+
                 if (fileHourStr === "") return false; 
-                
+
                 const fileHour = parseInt(fileHourStr, 10);
-                
+
                 return fileHour === targetHour;
             });
         }
-        
+
         res.json(recordings);
 
     } catch (error) {
         console.error('SERVER DEBUG ERROR:', error.message);
+        // אם ה-IP הציבורי לא נכון, השגיאה תופיע כאן (למשל ETIMEDOUT)
         return res.status(500).json({ error: 'Failed to process request on proxy server.' });
     }
 });
@@ -129,4 +136,3 @@ app.use('/recordings', async (req, res) => {
 app.listen(PORT, () => {
     console.log(`Proxy Server running on port ${PORT}.`);
 });
-
