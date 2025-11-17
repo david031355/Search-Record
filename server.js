@@ -7,8 +7,7 @@ const { JSDOM } = require('jsdom');
 const app = express();
 const PORT = process.env.PORT || 3000; 
 
-const REMOTE_RECORDING_SERVER_URL = 'http://164.68.127.36/'; 
-// (החלף ב-IP הנכון!)
+
 
 // --- בניית רשימת משתמשים מורשים ---
 const VALID_USERS = [];
@@ -130,3 +129,4 @@ app.use('/recordings', async (req, res) => {
 app.listen(PORT, () => {
     console.log(`Proxy Server running on port ${PORT}.`);
 });
+
