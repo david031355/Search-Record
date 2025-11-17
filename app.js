@@ -1,6 +1,5 @@
 // ******************************************************************
-// ⚠️ התיקון הקריטי: מחרוזת ריקה
-// זה גורם לדפדפן לשלוח את הבקשה לאותו שרת (Render)
+// ⚠️ כתובת זו חייבת להיות ה-URL הציבורי של Render (או ריקה אם רץ על Render)
 // ******************************************************************
 const PROXY_SERVER_URL = ''; 
 // ******************************************************************
@@ -11,8 +10,17 @@ const LOGO_MAP = {
     'kol_chai': 'img/kol_chai.svg',
     'kolbarama': 'img/kol_barama.png',
     'kol_play': 'img/kol_play.png',
-    'default': 'img/default.png' // תמונת ברירת מחדל
+    'default': 'img/default.png' 
 };
+
+// ✨ --- מפה חדשה: מזהי תחנות לשמות מלאים --- ✨
+const STATION_NAME_MAP = {
+    'kcm': 'קול חי מיוזיק',
+    'kol_chai': 'קול חי',
+    'kolbarama': 'קול ברמה',
+    'kol_play': 'קול פליי'
+};
+// ✨ --- סוף המפה החדשה --- ✨
 
 
 /**
@@ -23,7 +31,6 @@ const sendAuthRequest = async (username, password) => {
     const encodedUser = encodeURIComponent(username);
     const encodedPass = encodeURIComponent(password);
     
-    // בונה נתיב יחסי תקין ( /search?user=... )
     const testUrl = `${PROXY_SERVER_URL}/search?user=${encodedUser}&pass=${encodedPass}&station=kcm&date=2024-01-01`;
 
     try {
@@ -49,7 +56,7 @@ function formatTime(seconds) {
  * קוד ראשי שרץ כשהדף נטען
  */
 document.addEventListener('DOMContentLoaded', async () => {
-    // --- 1. בחירת רכיבי DOM ---
+    // --- 1. בחירת רכיבי DOM (ללא שינוי) ---
     
     const loginContainer = document.getElementById('login-container');
     const mainContent = document.getElementById('main-content');
@@ -76,7 +83,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     
     // ----------------------------------------------------
-    // 2. לוגיקת טעינה ובדיקת סשן
+    // 2. לוגיקת טעינה ובדיקת סשן (ללא שינוי)
     // ----------------------------------------------------
     const checkSession = async () => {
         const storedUser = sessionStorage.getItem('radioUser');
@@ -99,7 +106,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
 
     // ----------------------------------------------------
-    // 3. מטפל בלחיצה על כפתור הכניסה
+    // 3. מטפל בלחיצה על כפתור הכניסה (ללא שינוי)
     // ----------------------------------------------------
     loginBtn.addEventListener('click', async () => {
         const user = document.getElementById('initial-username').value;
@@ -120,7 +127,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     });
 
     // ----------------------------------------------------
-    // 4. לוגיקת חיפוש
+    // 4. לוגיקת חיפוש (✨ מעודכנת ✨)
     // ----------------------------------------------------
     searchForm.addEventListener('submit', async (event) => {
         event.preventDefault(); 
@@ -145,7 +152,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         resultsList.innerHTML = '';
         loadingDiv.style.display = 'block';
 
-        // בונה נתיב יחסי תקין ( /search?user=... )
         let searchUrl = `${PROXY_SERVER_URL}/search?user=${encodedUser}&pass=${encodedPass}&station=${station}&date=${date}`;
         if (hour !== '') searchUrl += `&hour=${hour}`;
 
@@ -159,8 +165,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                     return;
                 }
                 const errorData = await response.json().catch(() => ({ error: 'שגיאה בשרת ה-Proxy.' }));
-                // שגיאת ה-404 תופיע כאן אם ה-server.js עדיין לא מעודכן
-                throw new Error(`${response.status} - ${errorData.error || 'נא לנסות שוב.'}`);
+                throw new Error(`שגיאה בחיבור: ${response.status} - ${errorData.error || 'נא לנסות שוב.'}`);
             }
 
             const files = await response.json(); 
@@ -170,6 +175,15 @@ document.addEventListener('DOMContentLoaded', async () => {
                 resultsList.innerHTML = `<li>לא נמצאו הקלטות בתאריך המבוקש.</li>`;
             } else {
                 resultsList.innerHTML = ''; 
+                
+                // שולף את נתוני החיפוש פעם אחת
+                const [year, monthRaw, dayRaw] = date.split('-'); 
+                const month = parseInt(monthRaw, 10).toString(); 
+                const day = parseInt(dayRaw, 10).toString();
+                
+                // ✨ שולף את שם התחנה המלא מהמפה החדשה ✨
+                const stationFullName = STATION_NAME_MAP[station] || station;
+
                 files.forEach(file => {
                     const listItem = document.createElement('li');
                     
@@ -181,12 +195,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                     const metadataDiv = document.createElement('div');
                     metadataDiv.className = 'result-metadata';
                     
-                    const [year, monthRaw, dayRaw] = date.split('-'); 
-                    const month = parseInt(monthRaw, 10).toString(); 
-                    const day = parseInt(dayRaw, 10).toString(); 
-                    
                     let fileHour = '??';
-                    
                     const prefix = station + year + month + day;
                     const fileHourStr = file.name.slice(0, -4).replace(prefix, '');
                     
@@ -198,13 +207,18 @@ document.addEventListener('DOMContentLoaded', async () => {
                     const actionsWrapper = document.createElement('div');
                     actionsWrapper.className = 'result-actions';
 
+                    // 4. כפתור "האזנה"
                     const playBtn = document.createElement('button');
                     playBtn.className = 'btn-listen'; 
                     playBtn.innerHTML = '<i class="fas fa-play"></i> האזנה';
                     playBtn.setAttribute('data-src', file.path); 
-                    playBtn.setAttribute('data-title', file.name); 
                     playBtn.setAttribute('data-image-src', imageSrc); 
                     
+                    // ✨ יצירת הכותרת החדשה לנגן ✨
+                    const playerTitleText = `${stationFullName} | ${fileHour}:00`;
+                    playBtn.setAttribute('data-title', playerTitleText); // ✨ מעביר את הכותרת החדשה
+                    
+                    // 5. כפתור ההורדה
                     const downloadBtn = document.createElement('a');
                     downloadBtn.href = file.path; 
                     downloadBtn.setAttribute('download', file.name); 
@@ -223,8 +237,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             }
         } catch (error) {
             loadingDiv.style.display = 'none';
-            // הצגת השגיאה שקיבלנו מה-fetch
-            resultsList.innerHTML = `<li>אירעה שגיאה: **שגיאה בחיבור: ${error.message}**</li>`;
+            resultsList.innerHTML = `<li>אירעה שגיאה: **${error.message}**</li>`;
             console.error('Error fetching files:', error);
         }
     });
@@ -238,11 +251,11 @@ document.addEventListener('DOMContentLoaded', async () => {
         
         if (playButton) {
             const src = playButton.getAttribute('data-src');
-            const title = playButton.getAttribute('data-title');
+            const title = playButton.getAttribute('data-title'); // ✨ יקבל את הכותרת החדשה
             const imageSrc = playButton.getAttribute('data-image-src');
             
             player.src = src;
-            playerTitle.textContent = title;
+            playerTitle.textContent = title; // ✨ יציג את הכותרת החדשה
             playerArt.src = imageSrc || LOGO_MAP['default']; 
             
             player.load();
