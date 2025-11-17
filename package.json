@@ -3,17 +3,14 @@
   "version": "1.0.0",
   "description": "Proxy server for radio recordings search.",
   "main": "server.js",
-  
-  "scripts": { 
+  "scripts": {
     "start": "node server.js",
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "build": "echo 'No build step required'"  
+    "test": "echo \"Error: no test specified\" && exit 1"
   },
-  
   "dependencies": {
     "express": "^4.19.2",
     "jsdom": "^24.0.0",
-    "node-fetch": "2.6.7"  
+    "node-fetch": "2.6.7"
   },
-  "type": "commonjs"  
+  "type": "commonjs"
 }
