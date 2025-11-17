@@ -7,9 +7,6 @@ const { JSDOM } = require('jsdom');
 const app = express();
 const PORT = process.env.PORT || 3000; 
 
-// ******************************************************************
-// ⚠️ הגדרות אבטחה וחיבור
-// ******************************************************************
 const REMOTE_RECORDING_SERVER_URL = 'http://164.68.127.36/'; 
 // (החלף ב-IP הנכון!)
 
@@ -32,6 +29,7 @@ if (VALID_USERS.length === 0) {
 }
 // ******************************************************************
 
+// הגשת קבצים סטטיים משורש הפרויקט (במקום מ-public)
 app.use(express.static(__dirname)); 
 
 app.get('/search', async (req, res) => {
@@ -49,20 +47,12 @@ app.get('/search', async (req, res) => {
         return res.status(400).json({ error: 'Missing station or date parameters' });
     }
 
-    // ***************************************************************
-    // ✨ התיקון: הסרת אפסים מובילים מחודש ויום ✨
-    // ***************************************************************
-    const dateParts = date.split('-'); // לדוגמה: ['2025', '11', '09']
+    // תיקון הסרת אפסים מובילים מחודש ויום
+    const dateParts = date.split('-'); 
     const year = dateParts[0];
-    
-    // המרה למספר וחזרה למחרוזת מסירה את האפס המוביל
-    // '11' -> 11 -> '11'
-    // '09' -> 9 -> '9'
     const month = parseInt(dateParts[1], 10).toString(); 
     const day = parseInt(dateParts[2], 10).toString();   
-    // ***************************************************************
 
-    // 4. בניית נתיב לשרת ההקלטות (עם הנתונים המתוקנים)
     const targetDirectoryUrl = `${REMOTE_RECORDING_SERVER_URL}/${station}/${year}/${month}/${day}/`;
 
     try {
@@ -84,12 +74,13 @@ app.get('/search', async (req, res) => {
             if ((href.endsWith('.mp3') || href.endsWith('.wav'))) {
                 recordings.push({
                     name: link.textContent,
+                    // שימוש ב-RENDER_EXTERNAL_URL להזרמה מאובטחת
                     path: `${process.env.RENDER_EXTERNAL_URL}/recordings/${station}/${year}/${month}/${day}/${href}` 
                 });
             }
         });
         
-        // 5. סינון לפי שעה בודדת (כפי שנקבע)
+        // תיקון באג סינון השעה
         if (hour) {
             const targetHour = parseInt(hour, 10);
             
@@ -99,10 +90,13 @@ app.get('/search', async (req, res) => {
 
             recordings = recordings.filter(file => {
                 const fileNameWithoutExtension = file.name.slice(0, -4); 
-                const hourMatch = fileNameWithoutExtension.match(/(\d{1,2})$/);
                 
-                if (!hourMatch) return false; 
-                const fileHour = parseInt(hourMatch[1], 10);
+                const prefix = station + year + month + day;
+                const fileHourStr = fileNameWithoutExtension.replace(prefix, '');
+                
+                if (fileHourStr === "") return false; 
+                
+                const fileHour = parseInt(fileHourStr, 10);
                 
                 return fileHour === targetHour;
             });
@@ -116,9 +110,7 @@ app.get('/search', async (req, res) => {
     }
 });
 
-// ***************************************************************
 // Reverse Proxy להזרמת קבצי מדיה
-// ***************************************************************
 app.use('/recordings', async (req, res) => {
     const remoteUrl = REMOTE_RECORDING_SERVER_URL + req.originalUrl.replace('/recordings', '');
     try {
