@@ -1,12 +1,22 @@
-/* --- 1. עיצוב בסיסי ופונטים --- */
+/* --- 1. משתני עיצוב ועיצוב בסיסי --- */
+:root {
+    --primary-color: #007bff;
+    --primary-hover: #0056b3;
+    --text-color: #333;
+    --text-light: #555;
+    --player-height: 90px; /* גובה הנגן החדש */
+}
+
 body {
     font-family: 'Rubik', Arial, sans-serif; 
     background-color: #f4f7f6; 
-    color: #333; 
+    color: var(--text-color); 
     line-height: 1.6;
     direction: rtl;
     margin: 0;
     padding: 20px;
+    /* ✨ ריפוד תחתון כדי שהנגן לא יסתיר תוכן ✨ */
+    padding-bottom: var(--player-height); 
 }
 
 /* --- 2. עיצוב הכותרות --- */
@@ -19,7 +29,7 @@ h2 { font-weight: 500; }
 .subtitle {
     text-align: center;
     font-size: 0.9em;
-    color: #555;
+    color: var(--text-light);
     margin-top: -15px;
 }
 hr {
@@ -68,14 +78,14 @@ select {
     transition: border-color 0.3s, box-shadow 0.3s;
 }
 input:focus, select:focus {
-    border-color: #007bff;
+    border-color: var(--primary-color);
     box-shadow: 0 0 5px rgba(0,123,255,0.25);
     outline: none;
 }
 
 /* --- 6. עיצוב כפתורים --- */
 button, #login-btn {
-    background-color: #007bff; 
+    background-color: var(--primary-color); 
     color: white;
     font-weight: 500;
     font-size: 1em;
@@ -86,7 +96,7 @@ button, #login-btn {
     transition: background-color 0.3s ease, transform 0.2s;
 }
 button:hover, #login-btn:hover {
-    background-color: #0056b3; 
+    background-color: var(--primary-hover); 
     transform: translateY(-2px); 
 }
 button:disabled, #login-btn:disabled {
@@ -111,7 +121,7 @@ button:disabled, #login-btn:disabled {
     min-width: 150px;
 }
 
-/* --- 8. עיצוב התוצאות והנגן --- */
+/* --- 8. עיצוב התוצאות --- */
 .results {
     border-top: 1px solid #eee;
     padding-top: 20px;
@@ -135,10 +145,9 @@ button:disabled, #login-btn:disabled {
     font-weight: 500;
     font-size: 1.1em;
 }
+/* הסתרת הנגן הישן (אם בטעות נוצר) */
 audio {
-    max-width: 100%; 
-    border-radius: 50px; 
-    margin-top: 10px;
+    display: none;
 }
 
 /* --- 9. עיצוב הודעות --- */
@@ -155,33 +164,217 @@ audio {
     font-weight: 500;
 }
 
-/* --- 10. עיצוב כפתור הורדה (כחול) --- */
+/* --- 10. עיצוב כפתור הורדה --- */
 .download-button {
-    background-color: #007bff; /* צבע כחול (כמו כפתור 'חפש') */
-    color: white !important; /* צבע טקסט לבן (חשוב כדי לדרוס צבע קישור) */
+    background-color: #007bff; 
+    color: white !important; 
     padding: 8px 14px;
     border-radius: 6px;
-    text-decoration: none; /* מסתיר את הקו התחתון של הקישור */
+    text-decoration: none; 
     font-size: 0.9em;
     font-weight: 500;
     transition: background-color 0.3s ease, transform 0.2s;
-    margin-right: 10px; /* מרחיק אותו מעט משאר האלמנטים */
+    margin-right: 10px; 
 }
 .download-button:hover {
-    background-color: #0056b3; /* כחול כהה יותר */
+    background-color: #0056b3; 
     color: white !important;
     transform: translateY(-2px); 
 }
 
-/* --- 11. כלי עזר להסתרה --- */
+/* --- ✨ 11. עיצוב כפתור "האזנה" החדש ✨ --- */
+.btn-listen {
+    background-color: #17a2b8; /* צבע טורקיז/כחול-ירוק */
+    color: white;
+    font-size: 0.9em;
+    font-weight: 500;
+    padding: 8px 14px;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background-color 0.3s ease, transform 0.2s;
+    border: none;
+    margin-right: 10px; 
+    display: inline-flex;
+    align-items: center;
+    gap: 8px; /* רווח בין האייקון לטקסט */
+}
+.btn-listen:hover {
+    background-color: #138496;
+    transform: translateY(-2px);
+}
+
+
+/* --- ✨ 12. עיצוב הנגן הקבוע החדש (מהקוד שלך) ✨ --- */
+.persistent-player {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: var(--player-height);
+    background: rgba(255,255,255,0.98);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    box-shadow: 0 -5px 20px rgba(0,0,0,0.1);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 25px;
+    box-sizing: border-box;
+    direction: ltr; /* חשוב לשמור על כיוון הנגן משמאל לימין */
+    transform: translateY(100%);
+    transition: transform 0.3s ease-out;
+    z-index: 1000; /* לוודא שהוא תמיד למעלה */
+}
+.persistent-player.visible {
+    transform: translateY(0);
+}
+
+/* מידע על הפרק בנגן */
+.player-episode-info {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    min-width: 200px;
+    flex-shrink: 1;
+}
+#player-episode-art {
+    width: 60px;
+    height: 60px;
+    border-radius: 8px;
+    background: #eee;
+    object-fit: cover;
+}
+#player-episode-title {
+    font-weight: 600;
+    color: var(--text-color);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* פקדי נגינה וסליידר זמן */
+.player-main-controls {
+    flex-grow: 1;
+    max-width: 600px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 0 20px;
+}
+.player-buttons {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+}
+.player-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 1.2em; /* הוקטן מעט */
+    color: var(--text-color);
+    width: 40px;
+    text-align: center;
+}
+.player-btn#player-play-pause {
+    font-size: 2.0em; /* הוקטן מעט */
+    color: var(--primary-color);
+}
+.player-btn:hover { color: var(--primary-hover); }
+
+.player-progress {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-top: 5px;
+}
+.player-progress span {
+    font-size: 0.85em;
+    color: var(--text-light);
+    min-width: 40px;
+    text-align: center;
+}
+
+/* סליידר זמן */
+#player-seek-slider {
+    flex-grow: 1;
+    -webkit-appearance: none;
+    appearance: none;
+    width: 100%;
+    height: 5px;
+    background: #ddd;
+    border-radius: 5px;
+    outline: none;
+    cursor: pointer;
+}
+#player-seek-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 15px;
+    height: 15px;
+    background: var(--primary-color);
+    border-radius: 50%;
+    cursor: pointer;
+}
+#player-seek-slider::-moz-range-thumb {
+    width: 15px;
+    height: 15px;
+    background: var(--primary-color);
+    border-radius: 50%;
+    cursor: pointer;
+}
+
+/* פקדי ווליום */
+.player-volume-controls {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-width: 150px; /* הוקטן */
+    justify-content: flex-end;
+}
+.player-volume-controls i {
+    color: var(--text-light);
+    font-size: 1.1em;
+}
+#player-volume-slider {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 80px; /* הוקטן */
+    height: 4px;
+    background: #ddd;
+    border-radius: 5px;
+    outline: none;
+    cursor: pointer;
+}
+#player-volume-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 14px;
+    height: 14px;
+    background: var(--primary-color);
+    border-radius: 50%;
+    cursor: pointer;
+}
+#player-volume-slider::-moz-range-thumb {
+    width: 14px;
+    height: 14px;
+    background: var(--primary-color);
+    border-radius: 50%;
+    cursor: pointer;
+}
+
+
+/* --- 13. כלי עזר להסתרה --- */
 .hidden {
     display: none !important;
 }
 
-/* --- 12. עיצוב רספונסיבי למובייל --- */
+/* --- 14. עיצוב רספונסיבי למובייל --- */
 @media (max-width: 768px) {
     body {
         padding: 10px;
+        padding-bottom: calc(var(--player-height) + 10px); /* עדכון ריפוד למובייל */
     }
     #login-container, #main-content {
         padding: 15px;
@@ -196,5 +389,29 @@ audio {
     #results-list li {
         flex-direction: column; 
         align-items: flex-start;
+        gap: 10px; /* רווח בין הכפתורים במובייל */
+    }
+    
+    /* התאמות לנגן במובייל */
+    .persistent-player {
+        padding: 0 10px;
+        height: 80px; /* נגן נמוך יותר במובייל */
+    }
+    .player-episode-info {
+        min-width: 0;
+        flex-basis: 150px; /* הגדרת בסיס */
+    }
+    #player-episode-art {
+        width: 45px;
+        height: 45px;
+    }
+    #player-episode-title {
+        font-size: 0.9em;
+    }
+    .player-volume-controls {
+        display: none; /* הסתרת ווליום במובייל לטובת מקום */
+    }
+    .player-main-controls {
+        padding: 0 5px;
     }
 }
