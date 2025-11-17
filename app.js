@@ -1,5 +1,11 @@
+// ******************************************************************
+// ⚠️ התיקון הקריטי: מחרוזת ריקה
+// זה גורם לדפדפן לשלוח את הבקשה לאותו שרת (Render)
+// ******************************************************************
+const PROXY_SERVER_URL = ''; 
+// ******************************************************************
 
-const PROXY_SERVER_URL = 'https://search-record.onrender.com/'; 
+// מפה של מזהי תחנות לנתיבי לוגו מקומיים
 const LOGO_MAP = {
     'kcm': 'img/kcm.svg',
     'kol_chai': 'img/kol_chai.svg',
@@ -17,6 +23,7 @@ const sendAuthRequest = async (username, password) => {
     const encodedUser = encodeURIComponent(username);
     const encodedPass = encodeURIComponent(password);
     
+    // בונה נתיב יחסי תקין ( /search?user=... )
     const testUrl = `${PROXY_SERVER_URL}/search?user=${encodedUser}&pass=${encodedPass}&station=kcm&date=2024-01-01`;
 
     try {
@@ -69,7 +76,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     
     // ----------------------------------------------------
-    // 2. לוגיקת טעינה ובדיקת סשן (ללא שינוי)
+    // 2. לוגיקת טעינה ובדיקת סשן
     // ----------------------------------------------------
     const checkSession = async () => {
         const storedUser = sessionStorage.getItem('radioUser');
@@ -92,7 +99,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
 
     // ----------------------------------------------------
-    // 3. מטפל בלחיצה על כפתור הכניסה (ללא שינוי)
+    // 3. מטפל בלחיצה על כפתור הכניסה
     // ----------------------------------------------------
     loginBtn.addEventListener('click', async () => {
         const user = document.getElementById('initial-username').value;
@@ -113,7 +120,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     });
 
     // ----------------------------------------------------
-    // 4. לוגיקת חיפוש (✨ מעודכנת - תיקון באג שעה ✨)
+    // 4. לוגיקת חיפוש
     // ----------------------------------------------------
     searchForm.addEventListener('submit', async (event) => {
         event.preventDefault(); 
@@ -138,6 +145,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         resultsList.innerHTML = '';
         loadingDiv.style.display = 'block';
 
+        // בונה נתיב יחסי תקין ( /search?user=... )
         let searchUrl = `${PROXY_SERVER_URL}/search?user=${encodedUser}&pass=${encodedPass}&station=${station}&date=${date}`;
         if (hour !== '') searchUrl += `&hour=${hour}`;
 
@@ -151,7 +159,8 @@ document.addEventListener('DOMContentLoaded', async () => {
                     return;
                 }
                 const errorData = await response.json().catch(() => ({ error: 'שגיאה בשרת ה-Proxy.' }));
-                throw new Error(`שגיאה בחיבור: ${response.status} - ${errorData.error || 'נא לנסות שוב.'}`);
+                // שגיאת ה-404 תופיע כאן אם ה-server.js עדיין לא מעודכן
+                throw new Error(`${response.status} - ${errorData.error || 'נא לנסות שוב.'}`);
             }
 
             const files = await response.json(); 
@@ -164,39 +173,31 @@ document.addEventListener('DOMContentLoaded', async () => {
                 files.forEach(file => {
                     const listItem = document.createElement('li');
                     
-                    // 1. הקישור לשם הקובץ (פותח בכרטיסייה חדשה)
                     const fileLink = document.createElement('a');
                     fileLink.href = file.path; 
                     fileLink.textContent = file.name;
                     fileLink.target = '_blank';
                     
-                    // --- 2. יצירת מטא-דאטה (תיקון באג השעה) ---
                     const metadataDiv = document.createElement('div');
                     metadataDiv.className = 'result-metadata';
                     
-                    const [year, monthRaw, dayRaw] = date.split('-'); // מתוך הטופס
-                    const month = parseInt(monthRaw, 10).toString(); // '09' -> '9'
-                    const day = parseInt(dayRaw, 10).toString(); // '09' -> '9'
+                    const [year, monthRaw, dayRaw] = date.split('-'); 
+                    const month = parseInt(monthRaw, 10).toString(); 
+                    const day = parseInt(dayRaw, 10).toString(); 
                     
                     let fileHour = '??';
                     
-                    // ✨ לוגיקה חדשה לחילוץ השעה ✨
-                    // יוצר את הקידומת הצפויה של שם הקובץ, למשל "kcm20251116"
                     const prefix = station + year + month + day;
-                    // מסיר את הקידומת ואת הסיומת, משאיר רק את השעה
                     const fileHourStr = file.name.slice(0, -4).replace(prefix, '');
                     
                     if (fileHourStr !== "") {
-                        fileHour = fileHourStr.padStart(2, '0'); // מרפד ל-00:00
+                        fileHour = fileHourStr.padStart(2, '0'); 
                     }
                     metadataDiv.textContent = `תאריך: ${dayRaw}/${monthRaw}/${year} | שעה: ${fileHour}:00`;
-                    // --- סוף מטא-דאטה ---
 
-                    // 3. יוצר "עוטף" לכפתורים
                     const actionsWrapper = document.createElement('div');
                     actionsWrapper.className = 'result-actions';
 
-                    // 4. כפתור "האזנה"
                     const playBtn = document.createElement('button');
                     playBtn.className = 'btn-listen'; 
                     playBtn.innerHTML = '<i class="fas fa-play"></i> האזנה';
@@ -204,18 +205,15 @@ document.addEventListener('DOMContentLoaded', async () => {
                     playBtn.setAttribute('data-title', file.name); 
                     playBtn.setAttribute('data-image-src', imageSrc); 
                     
-                    // 5. כפתור ההורדה
                     const downloadBtn = document.createElement('a');
                     downloadBtn.href = file.path; 
                     downloadBtn.setAttribute('download', file.name); 
                     downloadBtn.className = 'download-button';
                     downloadBtn.innerHTML = '<i class="fas fa-download"></i> הורדה'; 
 
-                    // הוספת הכפתורים ל"עוטף"
                     actionsWrapper.appendChild(playBtn);
                     actionsWrapper.appendChild(downloadBtn); 
 
-                    // הוספת הרכיבים לרשימה
                     listItem.appendChild(fileLink);
                     listItem.appendChild(metadataDiv); 
                     listItem.appendChild(actionsWrapper);
@@ -225,16 +223,16 @@ document.addEventListener('DOMContentLoaded', async () => {
             }
         } catch (error) {
             loadingDiv.style.display = 'none';
-            resultsList.innerHTML = `<li>אירעה שגיאה: **${error.message}**</li>`;
+            // הצגת השגיאה שקיבלנו מה-fetch
+            resultsList.innerHTML = `<li>אירעה שגיאה: **שגיאה בחיבור: ${error.message}**</li>`;
             console.error('Error fetching files:', error);
         }
     });
     
     // ----------------------------------------------------
-    // 5. לוגיקת הנגן הקבוע
+    // 5. לוגיקת הנגן הקבוע (ללא שינוי)
     // ----------------------------------------------------
     
-    // --- א. האזנה לכפתורי "האזנה" ---
     resultsList.addEventListener('click', function(event) {
         const playButton = event.target.closest('.btn-listen');
         
@@ -254,7 +252,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     });
 
-    // --- ב. חיבור כפתורי הנגן ---
     function togglePlayPause() {
         if (player.src && (player.paused || player.ended)) {
             player.play();
@@ -289,7 +286,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         if(player.src) player.currentTime = seekSlider.value;
     });
 
-    // --- ג. שליטת ווליום עם גלגלת העכבר ---
     playerContainer.addEventListener('wheel', e => {
         e.preventDefault();
         let volume = player.volume;
@@ -302,7 +298,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         volumeSlider.value = volume;
     });
 
-    // --- ד. קיצורי מקלדת ---
     document.addEventListener('keydown', e => {
         if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') {
             return;
