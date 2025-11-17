@@ -122,16 +122,16 @@ button:disabled, #login-btn:disabled {
     min-width: 150px;
 }
 
-/* --- 8. עיצוב התוצאות --- */
+/* --- 8. עיצוב התוצאות (✨ מעודכן - מרכוז) ✨ --- */
 .results {
     border-top: 1px solid #eee;
     padding-top: 20px;
 }
 #results-list li {
     display: flex; 
-    flex-wrap: wrap;
-    justify-content: space-between; 
-    align-items: center;
+    flex-direction: column; /* סידור בטור */
+    align-items: center;   /* מרכוז אופקי */
+    gap: 10px;             /* רווח בין הרכיבים */
     padding: 15px;
     margin-bottom: 10px;
     border-bottom: 1px solid #f0f0f0;
@@ -147,17 +147,14 @@ button:disabled, #login-btn:disabled {
     font-size: 1.1em;
 }
 audio {
-    display: none; /* הנגן הראשי מטפל בזה */
+    display: none;
 }
 
-/* ✨ עיצוב חדש לטקסט התאריך/שעה ✨ */
+/* עיצוב חדש לטקסט התאריך/שעה */
 .result-metadata {
     font-size: 0.9em;
     color: var(--text-light);
-    margin: 5px 0;
-    width: 100%; /* במובייל, זה יהיה מתחת לשם הקובץ */
-    flex-basis: 100%; /* גורם לו לרדת שורה במחשב אם אין מקום */
-    text-align: right;
+    margin-top: -5px; /* קצת יותר קרוב לשם הקובץ */
 }
 
 /* --- 9. עיצוב הודעות --- */
@@ -248,13 +245,13 @@ audio {
     flex-shrink: 1;
 }
 
-/* ✨ עדכון עיצוב התמונה בנגן (מלבני) ✨ */
+/* עדכון עיצוב התמונה בנגן (מלבני) */
 #player-episode-art {
-    width: 80px; /* יותר רחב */
-    height: 60px; /* נשאר זהה */
+    width: 80px; 
+    height: 60px; 
     border-radius: 8px;
-    background: #f0f0f0; /* רקע בהיר לתמונות שקופות */
-    object-fit: contain; /* מציג את כל הלוגו, לא חותך */
+    background: #f0f0f0; 
+    object-fit: contain; 
 }
 
 #player-episode-title {
@@ -409,22 +406,12 @@ audio {
     }
     
     #results-list li {
-        flex-direction: column; 
-        align-items: flex-start;
-        gap: 8px; /* רווח קטן יותר */
-    }
-    /* שינוי: טקסט המטא-דאטה יהיה לפני הכפתורים */
-    .result-metadata {
-        order: 2; /* סדר 2 */
+        gap: 12px;
     }
     .result-actions {
-        order: 3; /* סדר 3 */
         display: flex;
         gap: 10px;
         width: 100%;
-    }
-    #results-list a { /* שם הקובץ */
-        order: 1; /* סדר 1 */
     }
     
     /* התאמות לנגן במובייל */
@@ -437,7 +424,7 @@ audio {
         flex-basis: 150px;
     }
     #player-episode-art {
-        width: 60px; /* עדכון למובייל */
+        width: 60px;
         height: 45px;
     }
     #player-episode-title {
