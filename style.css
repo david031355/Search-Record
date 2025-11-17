@@ -150,6 +150,16 @@ audio {
     display: none; /* הנגן הראשי מטפל בזה */
 }
 
+/* ✨ עיצוב חדש לטקסט התאריך/שעה ✨ */
+.result-metadata {
+    font-size: 0.9em;
+    color: var(--text-light);
+    margin: 5px 0;
+    width: 100%; /* במובייל, זה יהיה מתחת לשם הקובץ */
+    flex-basis: 100%; /* גורם לו לרדת שורה במחשב אם אין מקום */
+    text-align: right;
+}
+
 /* --- 9. עיצוב הודעות --- */
 #loading {
     text-align: center;
@@ -164,10 +174,10 @@ audio {
     font-weight: 500;
 }
 
-/* --- 10. ✨ עיצוב כפתורי האזנה והורדה (חדש) ✨ --- */
+/* --- 10. עיצוב כפתורי האזנה והורדה --- */
 .result-actions {
     display: flex;
-    gap: 10px; /* רווח בין כפתור האזנה להורדה */
+    gap: 10px; 
 }
 
 .btn-listen, .download-button {
@@ -180,7 +190,7 @@ audio {
     transition: background-color 0.3s ease, transform 0.2s;
     display: inline-flex;
     align-items: center;
-    gap: 8px; /* רווח בין האייקון לטקסט */
+    gap: 8px; 
     border: none;
     cursor: pointer;
 }
@@ -190,7 +200,6 @@ audio {
     transform: translateY(-2px); 
 }
 
-/* צבעים שונים לכל כפתור */
 .btn-listen {
     background-color: var(--secondary-color); /* טורקיז */
 }
@@ -238,13 +247,16 @@ audio {
     min-width: 200px;
     flex-shrink: 1;
 }
+
+/* ✨ עדכון עיצוב התמונה בנגן (מלבני) ✨ */
 #player-episode-art {
-    width: 60px;
-    height: 60px;
+    width: 80px; /* יותר רחב */
+    height: 60px; /* נשאר זהה */
     border-radius: 8px;
-    background: #eee;
-    object-fit: cover;
+    background: #f0f0f0; /* רקע בהיר לתמונות שקופות */
+    object-fit: contain; /* מציג את כל הלוגו, לא חותך */
 }
+
 #player-episode-title {
     font-weight: 600;
     color: var(--text-color);
@@ -268,6 +280,8 @@ audio {
     align-items: center;
     gap: 20px;
 }
+
+/* ✨ הסרת הריבוע הכחול/שחור בפוקוס ✨ */
 .player-btn {
     background: none;
     border: none;
@@ -276,13 +290,13 @@ audio {
     color: var(--text-color);
     width: 40px;
     text-align: center;
-    /* ✨ הסרת הריבוע הכחול/שחור בפוקוס ✨ */
-    outline: none;
+    outline: none; /* מסיר פוקוס */
 }
 .player-btn:focus, .player-btn:active {
     outline: none;
     box-shadow: none;
 }
+
 .player-btn#player-play-pause {
     font-size: 2.0em;
     color: var(--primary-color);
@@ -315,7 +329,6 @@ audio {
     outline: none;
     cursor: pointer;
 }
-/* ... (שאר עיצוב הסליידרים נשאר זהה) ... */
 #player-seek-slider::-webkit-slider-thumb {
     -webkit-appearance: none;
     appearance: none;
@@ -395,17 +408,23 @@ audio {
         width: 90%; 
     }
     
-    /* ✨ עדכון תוצאות החיפוש למובייל ✨ */
     #results-list li {
         flex-direction: column; 
         align-items: flex-start;
-        gap: 12px; /* רווח בין שם הקובץ לכפתורים */
+        gap: 8px; /* רווח קטן יותר */
     }
-    /* סידור הכפתורים בשורה גם במובייל */
+    /* שינוי: טקסט המטא-דאטה יהיה לפני הכפתורים */
+    .result-metadata {
+        order: 2; /* סדר 2 */
+    }
     .result-actions {
+        order: 3; /* סדר 3 */
         display: flex;
         gap: 10px;
         width: 100%;
+    }
+    #results-list a { /* שם הקובץ */
+        order: 1; /* סדר 1 */
     }
     
     /* התאמות לנגן במובייל */
@@ -418,7 +437,7 @@ audio {
         flex-basis: 150px;
     }
     #player-episode-art {
-        width: 45px;
+        width: 60px; /* עדכון למובייל */
         height: 45px;
     }
     #player-episode-title {
