@@ -31,7 +31,9 @@ if (VALID_USERS.length === 0) {
 
 // הגשת קבצים סטטיים משורש הפרויקט
 app.use(express.static(__dirname)); 
-
+app.get('/', (req, res) => {
+    res.sendFile(path.join(__dirname, 'index.html'));
+});
 // נקודת ה-API לחיפוש
 app.get('/search', async (req, res) => {
     const { station, date, hour, user, pass } = req.query; 
@@ -130,3 +132,4 @@ app.use('/recordings', async (req, res) => {
 app.listen(PORT, () => {
     console.log(`Proxy Server running on port ${PORT}.`);
 });
+
