@@ -1,6 +1,6 @@
 console.log("App.js started loading..."); 
 
-const PROXY_SERVER_URL = ''; 
+const PROXY_SERVER_URL = 'https://search-record.onrender.com'; 
 
 const LOGO_MAP = {
     'kcm': 'img/kcm.svg',
@@ -455,3 +455,4 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     });
 });
+
