@@ -4,14 +4,19 @@ const fetch = fetchModule.default || fetchModule;
 const path = require('path');
 const { JSDOM } = require('jsdom');
 
+// --- תוספות לעריכת אודיו ---
+const ffmpeg = require('fluent-ffmpeg');
+const ffmpegPath = require('ffmpeg-static');
+// אומר לשרת להשתמש ב-ffmpeg שהורדנו מקומית
+ffmpeg.setFfmpegPath(ffmpegPath);
+// ---------------------------
+
 const app = express();
 const PORT = process.env.PORT || 3000; 
 
-// קריאת משתני סביבה
-const REMOTE_RECORDING_SERVER_URL = process.env.REMOTE_RECORDING_SERVER_URL || 'http://192.168.1.10'; 
-const RENDER_PUBLIC_URL = process.env.RENDER_EXTERNAL_URL;
+const REMOTE_RECORDING_SERVER_URL = 'http://192.168.1.10'; 
+const RENDER_PUBLIC_URL = process.env.RENDER_EXTERNAL_URL; 
 
-// --- בניית רשימת משתמשים מורשים ---
 const VALID_USERS = [];
 if (process.env.AUTH_USER && process.env.AUTH_PASS) {
     VALID_USERS.push({
@@ -29,12 +34,51 @@ if (VALID_USERS.length === 0) {
     VALID_USERS.push({ username: 'admin', password: '12345' });
 }
 
-// הגשת קבצים סטטיים משורש הפרויקט
 app.use(express.static(__dirname)); 
-app.get('/', (req, res) => {
-    res.sendFile(path.join(__dirname, 'index.html'));
+
+// --- ✨ נתיב חדש: חיתוך הקלטה ✨ ---
+app.get('/trim', (req, res) => {
+    const { url, start, duration, filename } = req.query;
+
+    if (!url || !start || !duration) {
+        return res.status(400).send('Missing parameters (url, start, duration)');
+    }
+
+    // הופך את ה-URL של Render חזרה ל-URL של שרת ההקלטות המקורי
+    let remoteFileUrl = url;
+    if (url.includes('/recordings/')) {
+        // לדוגמה: משמיט את https://.../recordings/ ומחבר לשרת המקורי
+        const relativePath = url.split('/recordings/')[1];
+        remoteFileUrl = `${REMOTE_RECORDING_SERVER_URL}/${relativePath}`;
+    }
+
+    console.log(`Starting trim: ${filename} | Start: ${start}s | Duration: ${duration}s`);
+
+    // מגדיר את הקובץ כהורדה בדפדפן
+    res.header('Content-Disposition', `attachment; filename="cut_${filename || 'recording.mp3'}"`);
+    res.header('Content-Type', 'audio/mpeg');
+
+    // ביצוע החיתוך והזרמה ישירה למשתמש
+    ffmpeg(remoteFileUrl)
+        .setStartTime(start)
+        .setDuration(duration)
+        .format('mp3')
+        .audioCodec('libmp3lame')
+        .on('error', (err) => {
+            console.error('Error trimming file:', err);
+            // אם ההורדה כבר התחילה אי אפשר לשלוח סטטוס שגיאה, אבל נרשום בלוג
+            if (!res.headersSent) {
+                res.status(500).send('Error processing file');
+            }
+        })
+        .on('end', () => {
+            console.log('Trim finished successfully');
+        })
+        .pipe(res, { end: true });
 });
-// נקודת ה-API לחיפוש
+// -----------------------------------
+
+
 app.get('/search', async (req, res) => {
     const { station, date, hour, user, pass } = req.query; 
 
@@ -50,7 +94,6 @@ app.get('/search', async (req, res) => {
         return res.status(400).json({ error: 'Missing station or date parameters' });
     }
 
-    // תיקון הסרת אפסים מובילים מחודש ויום
     const dateParts = date.split('-'); 
     const year = dateParts[0];
     const month = parseInt(dateParts[1], 10).toString(); 
@@ -77,12 +120,11 @@ app.get('/search', async (req, res) => {
             if ((href.endsWith('.mp3') || href.endsWith('.wav'))) {
                 recordings.push({
                     name: link.textContent,
-                    path: `${RENDER_PUBLIC_URL}/recordings/${station}/${year}/${month}/${day}/${href}` 
+                    path: `${process.env.RENDER_EXTERNAL_URL}/recordings/${station}/${year}/${month}/${day}/${href}` 
                 });
             }
         });
         
-        // תיקון באג סינון השעה
         if (hour) {
             const targetHour = parseInt(hour, 10);
             
@@ -92,12 +134,10 @@ app.get('/search', async (req, res) => {
 
             recordings = recordings.filter(file => {
                 const fileNameWithoutExtension = file.name.slice(0, -4); 
-                
                 const prefix = station + year + month + day;
                 const fileHourStr = fileNameWithoutExtension.replace(prefix, '');
                 
                 if (fileHourStr === "") return false; 
-                
                 const fileHour = parseInt(fileHourStr, 10);
                 
                 return fileHour === targetHour;
@@ -112,7 +152,6 @@ app.get('/search', async (req, res) => {
     }
 });
 
-// Reverse Proxy להזרמת קבצי מדיה
 app.use('/recordings', async (req, res) => {
     const remoteUrl = REMOTE_RECORDING_SERVER_URL + req.originalUrl.replace('/recordings', '');
     try {
@@ -128,9 +167,6 @@ app.use('/recordings', async (req, res) => {
     }
 });
 
-
 app.listen(PORT, () => {
     console.log(`Proxy Server running on port ${PORT}.`);
 });
-
-
