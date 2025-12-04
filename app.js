@@ -1,10 +1,5 @@
-// ******************************************************************
-// ⚠️ כתובת זו חייבת להיות ה-URL הציבורי של Render (או ריקה אם רץ על Render)
-// ******************************************************************
 const PROXY_SERVER_URL = ''; 
-// ******************************************************************
 
-// מפה של מזהי תחנות לנתיבי לוגו מקומיים
 const LOGO_MAP = {
     'kcm': 'img/kcm.svg',
     'kol_chai': 'img/kol_chai.svg',
@@ -20,12 +15,11 @@ const STATION_NAME_MAP = {
     'kol_play': 'קול פליי'
 };
 
-/**
- * פונקציית עזר: שולחת בקשת אימות לבדיקת תקפות פרטי המשתמש מול השרת
- */
 const sendAuthRequest = async (username, password) => {
+    
     const encodedUser = encodeURIComponent(username);
     const encodedPass = encodeURIComponent(password);
+    
     const testUrl = `${PROXY_SERVER_URL}/search?user=${encodedUser}&pass=${encodedPass}&station=kcm&date=2024-01-01`;
 
     try {
@@ -43,12 +37,7 @@ function formatTime(seconds) {
     return `${minutes}:${secs < 10 ? '0' : ''}${secs}`;
 }
 
-
-/**
- * קוד ראשי שרץ כשהדף נטען
- */
 document.addEventListener('DOMContentLoaded', async () => {
-    // --- 1. בחירת רכיבי DOM ---
     
     const loginContainer = document.getElementById('login-container');
     const mainContent = document.getElementById('main-content');
@@ -73,11 +62,15 @@ document.addEventListener('DOMContentLoaded', async () => {
     const currentTimeDisplay = document.getElementById('player-current-time');
     const totalTimeDisplay = document.getElementById('player-total-time');
 
-    // ✨ לוגיקת מצב כהה (Dark Mode) ✨
+    let wavesurfer = null;
+    let wsRegions = null;
+    const modal = document.getElementById('editor-modal');
+    const closeModal = document.querySelector('.close-modal');
+    const loadingWave = document.getElementById('waveform-loading');
+
     const themeToggleBtn = document.getElementById('theme-toggle');
     const themeIcon = themeToggleBtn.querySelector('i');
 
-    // בדיקה אם יש העדפה שמורה
     const currentTheme = localStorage.getItem('theme');
     if (currentTheme === 'dark') {
         document.body.classList.add('dark-mode');
@@ -88,7 +81,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     themeToggleBtn.addEventListener('click', () => {
         document.body.classList.toggle('dark-mode');
         
-        // החלפת אייקון ושמירה ב-LocalStorage
         if (document.body.classList.contains('dark-mode')) {
             themeIcon.classList.remove('fa-moon');
             themeIcon.classList.add('fa-sun');
@@ -99,12 +91,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             localStorage.setItem('theme', 'light');
         }
     });
-    // ✨ סוף לוגיקת מצב כהה ✨
 
-    
-    // ----------------------------------------------------
-    // 2. לוגיקת טעינה ובדיקת סשן
-    // ----------------------------------------------------
     const checkSession = async () => {
         const storedUser = sessionStorage.getItem('radioUser');
         const storedPass = sessionStorage.getItem('radioPass');
@@ -124,10 +111,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     
     await checkSession();
 
-
-    // ----------------------------------------------------
-    // 3. מטפל בלחיצה על כפתור הכניסה
-    // ----------------------------------------------------
     loginBtn.addEventListener('click', async () => {
         const user = document.getElementById('initial-username').value;
         const pass = document.getElementById('initial-password').value;
@@ -146,9 +129,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     });
 
-    // ----------------------------------------------------
-    // 4. לוגיקת חיפוש
-    // ----------------------------------------------------
     searchForm.addEventListener('submit', async (event) => {
         event.preventDefault(); 
         
@@ -237,8 +217,15 @@ document.addEventListener('DOMContentLoaded', async () => {
                     downloadBtn.className = 'download-button';
                     downloadBtn.innerHTML = '<i class="fas fa-download"></i> הורדה'; 
 
+                    const editBtn = document.createElement('button');
+                    editBtn.className = 'btn-listen btn-edit'; 
+                    editBtn.innerHTML = '<i class="fas fa-cut"></i> עריכה';
+                    editBtn.setAttribute('data-src', file.path);
+                    editBtn.setAttribute('data-name', file.name);
+
                     actionsWrapper.appendChild(playBtn);
                     actionsWrapper.appendChild(downloadBtn); 
+                    actionsWrapper.appendChild(editBtn);
 
                     listItem.appendChild(fileLink);
                     listItem.appendChild(metadataDiv); 
@@ -254,14 +241,9 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     });
     
-    // ----------------------------------------------------
-    // 5. לוגיקת הנגן הקבוע
-    // ----------------------------------------------------
-    
     resultsList.addEventListener('click', function(event) {
         const playButton = event.target.closest('.btn-listen');
-        
-        if (playButton) {
+        if (playButton && !playButton.classList.contains('btn-edit')) {
             const src = playButton.getAttribute('data-src');
             const title = playButton.getAttribute('data-title');
             const imageSrc = playButton.getAttribute('data-image-src');
@@ -275,6 +257,101 @@ document.addEventListener('DOMContentLoaded', async () => {
             
             playerContainer.classList.add('visible'); 
         }
+    });
+
+    closeModal.onclick = () => {
+        modal.classList.remove('show');
+        if (wavesurfer) {
+            wavesurfer.destroy();
+            wavesurfer = null;
+        }
+    };
+
+    resultsList.addEventListener('click', async (event) => {
+        const editButton = event.target.closest('.btn-edit');
+        if (!editButton) return;
+
+        const src = editButton.getAttribute('data-src');
+        const filename = editButton.getAttribute('data-name');
+        
+        modal.classList.add('show');
+        document.getElementById('editor-filename').textContent = filename;
+        loadingWave.style.display = 'block';
+        document.getElementById('waveform').innerHTML = ''; 
+        
+        modal.setAttribute('data-current-url', src);
+
+        wavesurfer = WaveSurfer.create({
+            container: '#waveform',
+            waveColor: '#007bff',
+            progressColor: '#17a2b8',
+            cursorColor: '#333',
+            height: 128,
+            plugins: [
+                WaveSurfer.Timeline.create({ container: '#wave-timeline' }),
+                WaveSurfer.Regions.create()
+            ]
+        });
+
+        wavesurfer.load(src);
+        
+        wsRegions = wavesurfer.registerPlugin(WaveSurfer.Regions.create());
+
+        wavesurfer.on('ready', () => {
+            loadingWave.style.display = 'none';
+            
+            wsRegions.addRegion({
+                start: 0,
+                end: 60,
+                color: 'rgba(40, 167, 69, 0.3)', 
+                drag: true,
+                resize: true
+            });
+        });
+
+        wsRegions.on('region-updated', (region) => {
+            updateRegionDisplay(region);
+        });
+        
+        wsRegions.on('region-created', (region) => {
+            updateRegionDisplay(region);
+            const regions = wsRegions.getRegions();
+            if (regions.length > 1) {
+                regions[0].remove();
+            }
+        });
+    });
+
+    function updateRegionDisplay(region) {
+        document.getElementById('region-start').textContent = formatTime(region.start);
+        document.getElementById('region-end').textContent = formatTime(region.end);
+        document.getElementById('region-duration').textContent = formatTime(region.end - region.start);
+    }
+
+    document.getElementById('btn-play-region').addEventListener('click', () => {
+        const regions = wsRegions.getRegions();
+        if (regions.length > 0) {
+            regions[0].play();
+        } else {
+            wavesurfer.playPause();
+        }
+    });
+
+    document.getElementById('btn-download-cut').addEventListener('click', () => {
+        const regions = wsRegions.getRegions();
+        if (regions.length === 0) {
+            alert('אנא סמן אזור לחיתוך.');
+            return;
+        }
+
+        const region = regions[0];
+        const start = region.start;
+        const duration = region.end - region.start;
+        const filename = document.getElementById('editor-filename').textContent;
+        const fileUrl = modal.getAttribute('data-current-url');
+
+        const downloadUrl = `${PROXY_SERVER_URL}/trim?url=${encodeURIComponent(fileUrl)}&start=${start}&duration=${duration}&filename=${encodeURIComponent(filename)}`;
+        window.location.href = downloadUrl;
     });
 
     function togglePlayPause() {
