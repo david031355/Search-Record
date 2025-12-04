@@ -515,6 +515,10 @@ audio {
 
 .hidden {
     display: none !important;
+    visibility: hidden !important;
+    opacity: 0 !important;
+    height: 0 !important;
+    overflow: hidden !important;
 }
 
 @media (max-width: 768px) {
