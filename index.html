@@ -89,11 +89,20 @@
             <div id="waveform"></div>
             <div id="wave-timeline"></div>
             <div class="editor-controls">
-                <button id="btn-play-full" class="editor-btn"><i class="fas fa-play"></i> נגן הכל</button>
-                <button id="btn-play-region" class="editor-btn"><i class="fas fa-expand"></i> נגן בחירה</button>
+                <button id="btn-play-region" class="editor-btn"><i class="fas fa-play"></i> נגן בחירה</button>
                 <div class="time-inputs">
                     <div><label>התחלה:</label> <span id="region-start">0:00</span></div>
                     <div><label>סיום:</label> <span id="region-end">0:00</span></div>
                     <div><label>סה"כ:</label> <span id="region-duration" style="font-weight: bold;">0:00</span></div>
                 </div>
-                <button id="btn-download-cut" class="editor-
+                <button id="btn-download-cut" class="editor-btn download-btn"><i class="fas fa-cut"></i> חתוך והורד</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://unpkg.com/wavesurfer.js@7"></script>
+    <script src="https://unpkg.com/wavesurfer.js@7/dist/plugins/regions.min.js"></script>
+    <script src="https://unpkg.com/wavesurfer.js@7/dist/plugins/timeline.min.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>
