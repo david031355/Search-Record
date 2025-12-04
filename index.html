@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>חיפוש הקלטות רדיו</title>
-    
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Rubik:wght@300;400;500;700&display=swap" rel="stylesheet">
@@ -86,24 +85,15 @@
             <span class="close-modal">&times;</span>
             <h2>עריכת הקלטה</h2>
             <p id="editor-filename" style="direction: ltr; text-align: center; color: var(--text-light);"></p>
-            <div id="waveform-loading">טוען גלי קול... (זה עלול לקחת זמן לקבצים ארוכים)</div>
+            <div id="waveform-loading">טוען גלי קול... (זה עלול לקחת זמן)</div>
             <div id="waveform"></div>
             <div id="wave-timeline"></div>
             <div class="editor-controls">
-                <button id="btn-play-region" class="editor-btn"><i class="fas fa-play"></i> נגן בחירה</button>
+                <button id="btn-play-full" class="editor-btn"><i class="fas fa-play"></i> נגן הכל</button>
+                <button id="btn-play-region" class="editor-btn"><i class="fas fa-expand"></i> נגן בחירה</button>
                 <div class="time-inputs">
                     <div><label>התחלה:</label> <span id="region-start">0:00</span></div>
                     <div><label>סיום:</label> <span id="region-end">0:00</span></div>
                     <div><label>סה"כ:</label> <span id="region-duration" style="font-weight: bold;">0:00</span></div>
                 </div>
-                <button id="btn-download-cut" class="editor-btn download-btn"><i class="fas fa-cut"></i> חתוך והורד</button>
-            </div>
-        </div>
-    </div>
-
-    <script src="https://unpkg.com/wavesurfer.js@7"></script>
-    <script src="https://unpkg.com/wavesurfer.js@7/dist/plugins/regions.min.js"></script>
-    <script src="https://unpkg.com/wavesurfer.js@7/dist/plugins/timeline.min.js"></script>
-    <script src="app.js"></script>
-</body>
-</html>
+                <button id="btn-download-cut" class="editor-
