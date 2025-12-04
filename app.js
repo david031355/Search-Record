@@ -1,560 +1,439 @@
-:root {
-    --primary-color: #007bff;
-    --primary-hover: #0056b3;
-    --secondary-color: #17a2b8;
-    --secondary-hover: #138496;
-    --bg-color: #f4f7f6;
-    --card-bg: #ffffff;
-    --text-color: #333;
-    --text-light: #555;
-    --border-color: #ccc;
-    --input-bg: #ffffff;
-    --player-height: 90px;
+console.log("App.js started loading..."); 
+
+const PROXY_SERVER_URL = ''; 
+
+const LOGO_MAP = {
+    'kcm': 'img/kcm.svg',
+    'kol_chai': 'img/kol_chai.svg',
+    'kolbarama': 'img/kol_barama.png',
+    'kol_play': 'img/kol_play.png',
+    'default': 'img/default.png' 
+};
+
+const STATION_NAME_MAP = {
+    'kcm': 'קול חי מיוזיק',
+    'kol_chai': 'קול חי',
+    'kolbarama': 'קול ברמה',
+    'kol_play': 'קול פליי'
+};
+
+function formatTime(seconds) {
+    const minutes = Math.floor(seconds / 60);
+    const secs = Math.floor(seconds % 60);
+    return `${minutes}:${secs < 10 ? '0' : ''}${secs}`;
 }
 
-body.dark-mode {
-    --bg-color: #121212;
-    --card-bg: #1e1e1e;
-    --text-color: #e0e0e0;
-    --text-light: #aaaaaa;
-    --border-color: #444;
-    --input-bg: #2c2c2c;
-    --primary-color: #0d6efd; 
-}
-
-body {
-    font-family: 'Rubik', Arial, sans-serif; 
-    background-color: var(--bg-color);
-    color: var(--text-color);
-    line-height: 1.6;
-    direction: rtl;
-    margin: 0;
-    padding: 20px;
-    padding-bottom: var(--player-height); 
-    transition: background-color 0.3s, color 0.3s;
-}
-
-h1, h2 {
-    text-align: center;
-    color: var(--primary-color); 
-}
-h1 { font-weight: 700; }
-h2 { font-weight: 500; }
-.subtitle {
-    text-align: center;
-    font-size: 0.9em;
-    color: var(--text-light);
-    margin-top: -15px;
-}
-hr {
-    border: none;
-    border-top: 1px solid var(--border-color);
-    margin: 30px 0;
-}
-
-#login-container, #main-content {
-    max-width: 900px;
-    margin: 20px auto;
-    padding: 25px 30px;
-    background-color: var(--card-bg);
-    border-radius: 12px; 
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1); 
-    transition: background-color 0.3s;
-}
-
-#login-container {
-    max-width: 400px; 
-    margin-top: 80px;
-}
-.login-field {
-    margin-bottom: 15px;
-    text-align: right;
-}
-.login-field label {
-    display: block;
-    margin-bottom: 5px;
-    font-weight: 500;
-}
-
-input[type="text"],
-input[type="password"],
-input[type="date"],
-input[type="number"],
-select {
-    width: 95%;
-    padding: 12px;
-    border: 1px solid var(--border-color);
-    background-color: var(--input-bg);
-    color: var(--text-color);
-    border-radius: 6px;
-    font-size: 1em;
-    font-family: 'Rubik', Arial, sans-serif;
-    transition: border-color 0.3s, box-shadow 0.3s, background-color 0.3s;
-}
-input:focus, select:focus {
-    border-color: var(--primary-color);
-    box-shadow: 0 0 5px rgba(0,123,255,0.25);
-    outline: none;
-}
-
-button, #login-btn {
-    background-color: var(--primary-color); 
-    color: white;
-    font-weight: 500;
-    font-size: 1em;
-    padding: 12px 20px;
-    border: none;
-    border-radius: 6px;
-    cursor: pointer;
-    transition: background-color 0.3s ease, transform 0.2s;
-}
-button:hover, #login-btn:hover {
-    background-color: var(--primary-hover); 
-    transform: translateY(-2px); 
-}
-button:disabled, #login-btn:disabled {
-    background-color: #aaa;
-    cursor: not-allowed;
-}
-
-#theme-toggle {
-    position: fixed;
-    top: 20px;
-    left: 20px;
-    background: var(--card-bg);
-    color: var(--text-color);
-    border: 1px solid var(--border-color);
-    border-radius: 50%;
-    width: 45px;
-    height: 45px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-    z-index: 1100;
-    transition: all 0.3s ease;
-}
-#theme-toggle:hover {
-    transform: scale(1.1);
-    background-color: var(--bg-color);
-}
-
-.search-form {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: center;
-    align-items: center;
-    gap: 15px;
-    margin-bottom: 30px;
-}
-.search-form label {
-    font-weight: 500;
-}
-.search-form input, .search-form select {
-    width: auto;
-    min-width: 150px;
-}
-
-.results {
-    border-top: 1px solid var(--border-color);
-    padding-top: 20px;
-}
-#results-list li {
-    display: flex; 
-    flex-direction: column; 
-    align-items: center;   
-    gap: 10px;             
-    padding: 15px;
-    margin-bottom: 10px;
-    border-bottom: 1px solid var(--border-color);
-    transition: background-color 0.2s;
-}
-#results-list li:hover {
-    background-color: rgba(0,0,0,0.03);
-}
-#results-list a {
-    text-decoration: none;
-    color: var(--primary-color);
-    font-weight: 500;
-    font-size: 1.1em;
-}
-audio {
-    display: none;
-}
-
-.result-metadata {
-    font-size: 0.9em;
-    color: var(--text-light);
-    margin-top: -5px; 
-}
-
-#loading {
-    text-align: center;
-    display: none;
-    color: #28a745; 
-    font-weight: 500;
-    font-size: 1.2em;
-}
-#login-message {
-    color: #dc3545; 
-    min-height: 1.2em;
-    font-weight: 500;
-}
-
-.result-actions {
-    display: flex;
-    gap: 10px; 
-}
-
-.btn-listen, .download-button, .btn-edit {
-    color: white !important; 
-    padding: 8px 14px;
-    border-radius: 6px;
-    text-decoration: none; 
-    font-size: 0.9em;
-    font-weight: 500;
-    transition: background-color 0.3s ease, transform 0.2s;
-    display: inline-flex;
-    align-items: center;
-    gap: 8px; 
-    border: none;
-    cursor: pointer;
-}
-
-.btn-listen:hover, .download-button:hover, .btn-edit:hover {
-    color: white !important;
-    transform: translateY(-2px); 
-}
-
-.btn-listen {
-    background-color: var(--secondary-color); 
-}
-.btn-listen:hover {
-    background-color: var(--secondary-hover);
-}
-.download-button {
-    background-color: var(--primary-color); 
-}
-.download-button:hover {
-    background-color: var(--primary-hover); 
-}
-.btn-edit {
-    background-color: #ffc107;
-    color: #333 !important;
-}
-.btn-edit:hover {
-    background-color: #e0a800;
-}
-
-.persistent-player {
-    position: fixed;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    height: var(--player-height);
-    background: var(--card-bg);
-    border-top: 1px solid var(--border-color);
-    box-shadow: 0 -5px 20px rgba(0,0,0,0.1);
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 0 25px;
-    box-sizing: border-box;
-    direction: ltr;
-    transform: translateY(100%);
-    transition: transform 0.3s ease-out, background-color 0.3s;
-    z-index: 1000;
-}
-.persistent-player.visible {
-    transform: translateY(0);
-}
-
-.player-episode-info {
-    display: flex;
-    align-items: center;
-    gap: 15px;
-    min-width: 200px;
-    flex-shrink: 1;
-}
-
-#player-episode-art {
-    width: 80px; 
-    height: 60px; 
-    border-radius: 8px;
-    background: #f0f0f0; 
-    object-fit: contain; 
-}
-
-#player-episode-title {
-    font-weight: 600;
-    color: var(--text-color);
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-}
-
-.player-main-controls {
-    flex-grow: 1;
-    max-width: 600px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    padding: 0 20px;
-}
-.player-buttons {
-    display: flex;
-    align-items: center;
-    gap: 20px;
-}
-
-.player-btn {
-    background: none;
-    border: none;
-    cursor: pointer;
-    font-size: 1.2em;
-    color: var(--text-color);
-    width: 40px;
-    text-align: center;
-    outline: none; 
-}
-.player-btn:focus, .player-btn:active {
-    outline: none;
-    box-shadow: none;
-}
-
-.player-btn#player-play-pause {
-    font-size: 2.0em;
-    color: var(--primary-color);
-}
-.player-btn:hover { color: var(--primary-hover); }
-
-.player-progress {
-    width: 100%;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    margin-top: 5px;
-}
-.player-progress span {
-    font-size: 0.85em;
-    color: var(--text-light);
-    min-width: 40px;
-    text-align: center;
-}
-
-#player-seek-slider, #player-volume-slider {
-    background: var(--border-color);
-}
-
-#player-seek-slider {
-    flex-grow: 1;
-    -webkit-appearance: none;
-    appearance: none;
-    width: 100%;
-    height: 5px;
-    border-radius: 5px;
-    outline: none;
-    cursor: pointer;
-}
-#player-seek-slider::-webkit-slider-thumb {
-    -webkit-appearance: none;
-    appearance: none;
-    width: 15px;
-    height: 15px;
-    background: var(--primary-color);
-    border-radius: 50%;
-    cursor: pointer;
-}
-#player-seek-slider::-moz-range-thumb {
-    width: 15px;
-    height: 15px;
-    background: var(--primary-color);
-    border-radius: 50%;
-    cursor: pointer;
-}
-
-.player-volume-controls {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    min-width: 150px;
-    justify-content: flex-end;
-}
-.player-volume-controls i {
-    color: var(--text-light);
-    font-size: 1.1em;
-}
-#player-volume-slider {
-    -webkit-appearance: none;
-    appearance: none;
-    width: 80px;
-    height: 4px;
-    border-radius: 5px;
-    outline: none;
-    cursor: pointer;
-}
-#player-volume-slider::-webkit-slider-thumb {
-    -webkit-appearance: none;
-    appearance: none;
-    width: 14px;
-    height: 14px;
-    background: var(--primary-color);
-    border-radius: 50%;
-    cursor: pointer;
-}
-#player-volume-slider::-moz-range-thumb {
-    width: 14px;
-    height: 14px;
-    background: var(--primary-color);
-    border-radius: 50%;
-    cursor: pointer;
-}
-
-.modal {
-    display: none; 
-    position: fixed; 
-    z-index: 2000; 
-    left: 0;
-    top: 0;
-    width: 100%; 
-    height: 100%; 
-    background-color: rgba(0,0,0,0.8);
-    backdrop-filter: blur(5px);
-    align-items: center;
-    justify-content: center;
-}
-
-.modal.show {
-    display: flex;
-}
-
-.modal-content {
-    background-color: var(--card-bg);
-    padding: 25px;
-    border: 1px solid var(--border-color);
-    width: 90%;
-    max-width: 1000px;
-    border-radius: 12px;
-    box-shadow: 0 5px 25px rgba(0,0,0,0.3);
-    position: relative;
-    color: var(--text-color);
-}
-
-.close-modal {
-    color: #aaa;
-    position: absolute;
-    top: 15px;
-    left: 20px;
-    font-size: 30px;
-    font-weight: bold;
-    cursor: pointer;
-    line-height: 1;
-}
-
-.close-modal:hover {
-    color: var(--text-color);
-}
-
-#waveform {
-    width: 100%;
-    margin-top: 20px;
-    background: rgba(0,0,0,0.05);
-    border-radius: 4px;
-}
-
-#waveform-loading {
-    text-align: center;
-    padding: 30px;
-    font-style: italic;
-    color: var(--primary-color);
-}
-
-.editor-controls {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-top: 25px;
-    flex-wrap: wrap;
-    gap: 15px;
-}
-
-.time-inputs {
-    display: flex;
-    gap: 20px;
-    font-size: 1.1em;
-}
-
-.editor-btn {
-    padding: 10px 20px;
-    border-radius: 6px;
-    border: none;
-    cursor: pointer;
-    font-size: 1em;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    background-color: var(--primary-color);
-    color: white;
-    font-weight: 500;
-}
-
-.editor-btn.download-btn {
-    background-color: #28a745;
-}
-.editor-btn.download-btn:hover {
-    background-color: #218838;
-}
-
-.hidden {
-    display: none !important;
-}
-
-@media (max-width: 768px) {
-    body {
-        padding: 10px;
-        padding-bottom: calc(var(--player-height) + 10px); 
+const sendAuthRequest = async (username, password) => {
+    try {
+        const encodedUser = encodeURIComponent(username);
+        const encodedPass = encodeURIComponent(password);
+        const testUrl = `${PROXY_SERVER_URL}/search?user=${encodedUser}&pass=${encodedPass}&station=kcm&date=2024-01-01`;
+        
+        const response = await fetch(testUrl);
+        return response.ok || response.status === 404; 
+    } catch (error) {
+        console.error("Auth check network error:", error);
+        return false;
     }
-    #login-container, #main-content {
-        padding: 15px;
+};
+
+document.addEventListener('DOMContentLoaded', async () => {
+    console.log("DOM loaded, initializing scripts...");
+
+    const loginContainer = document.getElementById('login-container');
+    const mainContent = document.getElementById('main-content');
+    const themeToggleBtn = document.getElementById('theme-toggle');
+
+    if (!loginContainer || !mainContent) {
+        console.error("Critical Error: HTML elements missing!");
+        return;
     }
-    .search-form {
-        flex-direction: column; 
-        gap: 20px;
+
+    if (themeToggleBtn) {
+        const themeIcon = themeToggleBtn.querySelector('i');
+        const currentTheme = localStorage.getItem('theme');
+        
+        if (currentTheme === 'dark') {
+            document.body.classList.add('dark-mode');
+            if(themeIcon) { themeIcon.classList.remove('fa-moon'); themeIcon.classList.add('fa-sun'); }
+        }
+
+        themeToggleBtn.addEventListener('click', () => {
+            document.body.classList.toggle('dark-mode');
+            const isDark = document.body.classList.contains('dark-mode');
+            
+            if (themeIcon) {
+                themeIcon.className = isDark ? 'fas fa-sun' : 'fas fa-moon';
+            }
+            localStorage.setItem('theme', isDark ? 'dark' : 'light');
+        });
     }
-    .search-form input, .search-form select, .search-form button {
-        width: 90%; 
+
+    const loginBtn = document.getElementById('login-btn');
+    const loginMessage = document.getElementById('login-message');
+    const searchForm = document.getElementById('search-form'); 
+    const resultsList = document.getElementById('results-list');
+    const loadingDiv = document.getElementById('loading');
+    
+    const playerContainer = document.getElementById('persistent-player');
+    const player = document.getElementById('main-player');
+    const playPauseBtn = document.getElementById('player-play-pause');
+    const skipForwardBtn = document.getElementById('player-skip-forward');
+    const skipBackwardBtn = document.getElementById('player-skip-backward');
+    const volumeSlider = document.getElementById('player-volume-slider');
+    const seekSlider = document.getElementById('player-seek-slider');
+    const playerTitle = document.getElementById('player-episode-title');
+    const playerArt = document.getElementById('player-episode-art');
+    const currentTimeDisplay = document.getElementById('player-current-time');
+    const totalTimeDisplay = document.getElementById('player-total-time');
+    
+    let wavesurfer = null;
+    let wsRegions = null;
+    const modal = document.getElementById('editor-modal');
+    const closeModal = document.querySelector('.close-modal');
+    const loadingWave = document.getElementById('waveform-loading');
+
+    const checkSession = async () => {
+        const storedUser = sessionStorage.getItem('radioUser');
+        const storedPass = sessionStorage.getItem('radioPass');
+
+        if (storedUser && storedPass) {
+            if (await sendAuthRequest(storedUser, storedPass)) {
+                loginContainer.classList.add('hidden');
+                mainContent.classList.remove('hidden');
+                return;
+            } else {
+                sessionStorage.clear();
+            }
+        }
+        loginContainer.classList.remove('hidden'); 
+    };
+    
+    checkSession();
+
+    if (loginBtn) {
+        loginBtn.addEventListener('click', async () => {
+            const userIn = document.getElementById('initial-username').value;
+            const passIn = document.getElementById('initial-password').value;
+            
+            if (loginMessage) loginMessage.textContent = 'בודק פרטים...';
+            loginBtn.disabled = true; 
+
+            if (await sendAuthRequest(userIn, passIn)) {
+                sessionStorage.setItem('radioUser', userIn);
+                sessionStorage.setItem('radioPass', passIn);
+                loginContainer.classList.add('hidden');
+                mainContent.classList.remove('hidden');
+            } else {
+                if (loginMessage) loginMessage.textContent = 'שם משתמש או סיסמה שגויים.';
+                loginBtn.disabled = false; 
+            }
+        });
+    }
+
+    if (searchForm) {
+        searchForm.addEventListener('submit', async (event) => {
+            event.preventDefault(); 
+            
+            const username = sessionStorage.getItem('radioUser');
+            const password = sessionStorage.getItem('radioPass');
+            
+            const station = document.getElementById('station').value;
+            const date = document.getElementById('date').value;
+            const hour = document.getElementById('hour').value;
+            
+            if (!username || !password) {
+                location.reload(); return;
+            }
+
+            const imageSrc = LOGO_MAP[station] || LOGO_MAP['default'];
+            const stationFullName = STATION_NAME_MAP[station] || station;
+
+            resultsList.innerHTML = '';
+            if (loadingDiv) loadingDiv.style.display = 'block';
+
+            const encodedUser = encodeURIComponent(username);
+            const encodedPass = encodeURIComponent(password);
+            
+            let searchUrl = `${PROXY_SERVER_URL}/search?user=${encodedUser}&pass=${encodedPass}&station=${station}&date=${date}`;
+            if (hour !== '') searchUrl += `&hour=${hour}`;
+
+            try {
+                const response = await fetch(searchUrl);
+                
+                if (!response.ok) {
+                    if (response.status === 401) {
+                        sessionStorage.clear();
+                        location.reload();
+                        return;
+                    }
+                    throw new Error(`Server returned ${response.status}`);
+                }
+
+                const files = await response.json(); 
+                if (loadingDiv) loadingDiv.style.display = 'none';
+
+                if (files.length === 0) {
+                    resultsList.innerHTML = `<li>לא נמצאו הקלטות.</li>`;
+                } else {
+                    const [year, monthRaw, dayRaw] = date.split('-'); 
+                    const month = parseInt(monthRaw, 10).toString(); 
+                    const day = parseInt(dayRaw, 10).toString();
+
+                    files.forEach(file => {
+                        const listItem = document.createElement('li');
+                        
+                        const metadataDiv = document.createElement('div');
+                        metadataDiv.className = 'result-metadata';
+                        
+                        let fileHour = '??';
+                        const prefix = station + year + month + day;
+                        const fileHourStr = file.name.slice(0, -4).replace(prefix, '');
+                        if (fileHourStr !== "") {
+                            fileHour = fileHourStr.padStart(2, '0');
+                        }
+                        
+                        metadataDiv.textContent = `תאריך: ${dayRaw}/${monthRaw}/${year} | שעה: ${fileHour}:00`;
+
+                        const actionsWrapper = document.createElement('div');
+                        actionsWrapper.className = 'result-actions';
+
+                        const playBtn = document.createElement('button');
+                        playBtn.className = 'btn-listen'; 
+                        playBtn.innerHTML = '<i class="fas fa-play"></i> האזנה';
+                        playBtn.setAttribute('data-src', file.path); 
+                        playBtn.setAttribute('data-title', `${stationFullName} | ${fileHour}:00`); 
+                        playBtn.setAttribute('data-image-src', imageSrc); 
+                        
+                        const downloadBtn = document.createElement('a');
+                        downloadBtn.href = file.path; 
+                        downloadBtn.setAttribute('download', file.name); 
+                        downloadBtn.className = 'download-button';
+                        downloadBtn.innerHTML = '<i class="fas fa-download"></i> הורדה'; 
+
+                        const editBtn = document.createElement('button');
+                        editBtn.className = 'btn-listen btn-edit'; 
+                        editBtn.innerHTML = '<i class="fas fa-cut"></i> עריכה';
+                        editBtn.setAttribute('data-src', file.path);
+                        editBtn.setAttribute('data-name', file.name);
+
+                        actionsWrapper.appendChild(playBtn);
+                        actionsWrapper.appendChild(downloadBtn); 
+                        actionsWrapper.appendChild(editBtn);
+
+                        const fileLink = document.createElement('a');
+                        fileLink.textContent = file.name;
+                        fileLink.href = file.path;
+                        fileLink.target = '_blank';
+
+                        listItem.appendChild(fileLink);
+                        listItem.appendChild(metadataDiv);
+                        listItem.appendChild(actionsWrapper);
+                        
+                        resultsList.appendChild(listItem);
+                    });
+                }
+            } catch (error) {
+                if (loadingDiv) loadingDiv.style.display = 'none';
+                resultsList.innerHTML = `<li>שגיאה: ${error.message}</li>`;
+                console.error('Search error:', error);
+            }
+        });
+    }
+
+    if (resultsList && player && playerContainer) {
+        resultsList.addEventListener('click', function(event) {
+            const playButton = event.target.closest('.btn-listen');
+            if (playButton && !playButton.classList.contains('btn-edit')) {
+                const src = playButton.getAttribute('data-src');
+                const title = playButton.getAttribute('data-title');
+                const imageSrc = playButton.getAttribute('data-image-src');
+                
+                const pTitle = document.getElementById('player-episode-title');
+                const pArt = document.getElementById('player-episode-art');
+
+                if (pTitle) pTitle.textContent = title;
+                if (pArt) pArt.src = imageSrc || LOGO_MAP['default']; 
+                
+                player.src = src;
+                player.load();
+                player.play().catch(e => console.log("Auto-play blocked:", e));
+                
+                playerContainer.classList.add('visible'); 
+            }
+        });
+    }
+
+    if (modal && closeModal) {
+        closeModal.onclick = () => {
+            modal.classList.remove('show');
+            if (wavesurfer) {
+                wavesurfer.destroy();
+                wavesurfer = null;
+            }
+        };
+
+        if (resultsList) {
+            resultsList.addEventListener('click', async (event) => {
+                const editButton = event.target.closest('.btn-edit');
+                if (!editButton) return;
+
+                const src = editButton.getAttribute('data-src');
+                const filename = editButton.getAttribute('data-name');
+                
+                modal.classList.add('show');
+                const editorFilename = document.getElementById('editor-filename');
+                if (editorFilename) editorFilename.textContent = filename;
+                
+                if (loadingWave) loadingWave.style.display = 'block';
+                const waveEl = document.getElementById('waveform');
+                if (waveEl) waveEl.innerHTML = ''; 
+                
+                modal.setAttribute('data-current-url', src);
+
+                if (typeof WaveSurfer === 'undefined') {
+                    console.error("WaveSurfer library not loaded!");
+                    if (waveEl) waveEl.innerHTML = "שגיאה: ספריית העריכה לא נטענה.";
+                    return;
+                }
+
+                wavesurfer = WaveSurfer.create({
+                    container: '#waveform',
+                    waveColor: '#007bff',
+                    progressColor: '#17a2b8',
+                    cursorColor: '#333',
+                    height: 128,
+                    backend: 'MediaElement',
+                    plugins: [
+                        WaveSurfer.Timeline.create({ container: '#wave-timeline' }),
+                        WaveSurfer.Regions.create()
+                    ]
+                });
+
+                wavesurfer.load(src);
+                wsRegions = wavesurfer.registerPlugin(WaveSurfer.Regions.create());
+
+                wavesurfer.on('ready', () => {
+                    if (loadingWave) loadingWave.style.display = 'none';
+                    wsRegions.addRegion({ start: 0, end: 60, color: 'rgba(40, 167, 69, 0.3)', drag: true, resize: true });
+                });
+
+                wsRegions.on('region-updated', (region) => updateRegionDisplay(region));
+                wsRegions.on('region-created', (region) => {
+                    updateRegionDisplay(region);
+                    const regs = wsRegions.getRegions();
+                    if (regs.length > 1) regs[0].remove();
+                });
+            });
+        }
+    }
+
+    function updateRegionDisplay(region) {
+        const startEl = document.getElementById('region-start');
+        const endEl = document.getElementById('region-end');
+        const durEl = document.getElementById('region-duration');
+        if(startEl) startEl.textContent = formatTime(region.start);
+        if(endEl) endEl.textContent = formatTime(region.end);
+        if(durEl) durEl.textContent = formatTime(region.end - region.start);
+    }
+
+    const btnPlayRegion = document.getElementById('btn-play-region');
+    if (btnPlayRegion) {
+        btnPlayRegion.addEventListener('click', () => {
+            if (!wsRegions) return;
+            const regions = wsRegions.getRegions();
+            if (regions.length > 0) regions[0].play();
+            else wavesurfer.playPause();
+        });
+    }
+
+    const btnDownloadCut = document.getElementById('btn-download-cut');
+    if (btnDownloadCut) {
+        btnDownloadCut.addEventListener('click', () => {
+            if (!wsRegions) return;
+            const regions = wsRegions.getRegions();
+            if (regions.length === 0) {
+                alert('אנא סמן אזור לחיתוך.');
+                return;
+            }
+            const region = regions[0];
+            const start = region.start;
+            const duration = region.end - region.start;
+            const filename = document.getElementById('editor-filename').textContent;
+            const fileUrl = modal.getAttribute('data-current-url');
+
+            const encodedFile = encodeURIComponent(filename);
+            const encodedUrl = encodeURIComponent(fileUrl);
+            
+            const downloadUrl = `${PROXY_SERVER_URL}/trim?url=${encodedUrl}&start=${start}&duration=${duration}&filename=${encodedFile}`;
+            window.location.href = downloadUrl;
+        });
+    }
+
+    if (playPauseBtn && player) {
+        const togglePlayPause = () => {
+            if (player.src && (player.paused || player.ended)) player.play();
+            else player.pause();
+        };
+        playPauseBtn.addEventListener('click', togglePlayPause);
+        
+        const playIconStr = '<i class="fas fa-play"></i>';
+        const pauseIconStr = '<i class="fas fa-pause"></i>';
+        
+        player.addEventListener('play', () => { playPauseBtn.innerHTML = pauseIconStr; });
+        player.addEventListener('pause', () => { playPauseBtn.innerHTML = playIconStr; });
+        player.addEventListener('ended', () => { playPauseBtn.innerHTML = playIconStr; });
+        
+        if (skipForwardBtn) skipForwardBtn.addEventListener('click', () => { if(player.src) player.currentTime += 30; });
+        if (skipBackwardBtn) skipBackwardBtn.addEventListener('click', () => { if(player.src) player.currentTime -= 10; });
+        if (volumeSlider) volumeSlider.addEventListener('input', (e) => { player.volume = e.target.value; });
+        
+        if (seekSlider && currentTimeDisplay) {
+            player.addEventListener('timeupdate', () => {
+                if (player.duration) {
+                    seekSlider.value = player.currentTime;
+                    currentTimeDisplay.textContent = formatTime(player.currentTime);
+                }
+            });
+            seekSlider.addEventListener('input', () => {
+                if(player.src) player.currentTime = seekSlider.value;
+            });
+        }
+        
+        if (totalTimeDisplay) {
+            player.addEventListener('loadedmetadata', () => {
+                if(seekSlider) seekSlider.max = player.duration;
+                totalTimeDisplay.textContent = formatTime(player.duration);
+            });
+        }
     }
     
-    #results-list li {
-        gap: 12px;
+    if (playerContainer && player && volumeSlider) {
+        playerContainer.addEventListener('wheel', e => {
+            e.preventDefault();
+            let volume = player.volume;
+            if (e.deltaY < 0) volume = Math.min(1, volume + 0.1);
+            else volume = Math.max(0, volume - 0.1);
+            player.volume = volume;
+            volumeSlider.value = volume;
+        });
     }
-    .result-actions {
-        display: flex;
-        gap: 10px;
-        width: 100%;
-    }
-    
-    .persistent-player {
-        padding: 0 10px;
-        height: 80px; 
-    }
-    .player-episode-info {
-        min-width: 0;
-        flex-basis: 150px;
-    }
-    #player-episode-art {
-        width: 60px;
-        height: 45px;
-    }
-    #player-episode-title {
-        font-size: 0.9em;
-    }
-    .player-volume-controls {
-        display: none; 
-    }
-    .player-main-controls {
-        padding: 0 5px;
-    }
-}
+
+    document.addEventListener('keydown', e => {
+        if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+        if (!player || !player.src) return;
+        
+        switch(e.code) {
+            case 'Space':
+                e.preventDefault();
+                if (player.paused) player.play(); else player.pause();
+                break;
+            case 'ArrowRight':
+                player.currentTime += 30;
+                break;
+            case 'ArrowLeft':
+                player.currentTime -= 10;
+                break;
+        }
+    });
+});
