@@ -1,6 +1,6 @@
 console.log("App.js started loading..."); 
 
-const PROXY_SERVER_URL = 'https://search-record.onrender.com'; 
+const PROXY_SERVER_URL = ''; 
 
 const LOGO_MAP = {
     'kcm': 'img/kcm.svg',
@@ -290,15 +290,25 @@ document.addEventListener('DOMContentLoaded', async () => {
                 const editorFilename = document.getElementById('editor-filename');
                 if (editorFilename) editorFilename.textContent = filename;
                 
-                editorAudio.src = src; 
-                
+                const waveStatus = document.getElementById('waveform-loading');
+                if (waveStatus) waveStatus.style.display = 'block';
                 if (waveStatus) waveStatus.textContent = 'טוען גלי קול... (ניתן כבר לנגן ולבחור)';
+
+                if (editorAudio) {
+                    editorAudio.src = src; 
+                    editorAudio.load();
+                }
+                
                 const waveEl = document.getElementById('waveform');
                 if (waveEl) waveEl.innerHTML = ''; 
                 
                 modal.setAttribute('data-current-url', src);
 
-                if (typeof WaveSurfer === 'undefined') return;
+                if (typeof WaveSurfer === 'undefined') {
+                    console.error("WaveSurfer library not loaded!");
+                    if (waveEl) waveEl.innerHTML = "שגיאה: ספריית העריכה לא נטענה.";
+                    return;
+                }
 
                 wavesurfer = WaveSurfer.create({
                     container: '#waveform',
@@ -307,6 +317,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                     cursorColor: '#333',
                     height: 128,
                     media: editorAudio, 
+                    fetchMedia: false,
                     plugins: [
                         WaveSurfer.Timeline.create({ container: '#wave-timeline' }),
                         WaveSurfer.Regions.create()
@@ -316,10 +327,14 @@ document.addEventListener('DOMContentLoaded', async () => {
                 wsRegions = wavesurfer.registerPlugin(WaveSurfer.Regions.create());
 
                 wavesurfer.on('ready', () => {
-                    if (waveStatus) waveStatus.textContent = 'גלי הקול נטענו.';
+                    if (waveStatus) waveStatus.style.display = 'none';
+                    wsRegions.addRegion({ start: 0, end: 60, color: 'rgba(40, 167, 69, 0.3)', drag: true, resize: true });
                 });
-                
-                wsRegions.addRegion({ start: 0, end: 60, color: 'rgba(40, 167, 69, 0.3)', drag: true, resize: true });
+
+                wavesurfer.on('error', (e) => {
+                    console.error("WaveSurfer Error:", e);
+                    if (waveStatus) waveStatus.textContent = "שגיאה בטעינת הגרף (האודיו עדיין פועל)";
+                });
 
                 wsRegions.on('region-updated', (region) => updateRegionDisplay(region));
                 wsRegions.on('region-created', (region) => {
@@ -328,7 +343,6 @@ document.addEventListener('DOMContentLoaded', async () => {
                     if (regs.length > 1) regs[0].remove();
                 });
                 
-                // הוספת אירועי Play/Pause לעדכון כפתור הנגינה בחלון העריכה
                 wavesurfer.on('play', () => {
                     const btn = document.getElementById('btn-play-region');
                     if (btn) btn.innerHTML = '<i class="fas fa-pause"></i> השהה נגינה';
@@ -353,14 +367,17 @@ document.addEventListener('DOMContentLoaded', async () => {
     const btnPlayRegion = document.getElementById('btn-play-region');
     if (btnPlayRegion) {
         btnPlayRegion.addEventListener('click', () => {
-            // טוגל (Toggle) פליי/פאוז
+            if (!wavesurfer) return;
             if (wavesurfer.isPlaying()) {
                 wavesurfer.pause();
             } else {
-                if (!wsRegions) return;
-                const regions = wsRegions.getRegions();
-                if (regions.length > 0) regions[0].play();
-                else wavesurfer.play();
+                if (wsRegions) {
+                    const regions = wsRegions.getRegions();
+                    if (regions.length > 0) regions[0].play();
+                    else wavesurfer.play();
+                } else {
+                    wavesurfer.play();
+                }
             }
         });
     }
@@ -455,4 +472,3 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     });
 });
-
