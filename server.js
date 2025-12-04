@@ -16,16 +16,10 @@ const RENDER_PUBLIC_URL = process.env.RENDER_EXTERNAL_URL;
 
 const VALID_USERS = [];
 if (process.env.AUTH_USER && process.env.AUTH_PASS) {
-    VALID_USERS.push({
-        username: process.env.AUTH_USER,
-        password: process.env.AUTH_PASS
-    });
+    VALID_USERS.push({ username: process.env.AUTH_USER, password: process.env.AUTH_PASS });
 }
 if (process.env.AUTH_USER_2 && process.env.AUTH_PASS_2) {
-    VALID_USERS.push({
-        username: process.env.AUTH_USER_2,
-        password: process.env.AUTH_PASS_2
-    });
+    VALID_USERS.push({ username: process.env.AUTH_USER_2, password: process.env.AUTH_PASS_2 });
 }
 if (VALID_USERS.length === 0) {
     VALID_USERS.push({ username: 'admin', password: '12345' });
@@ -124,22 +118,18 @@ app.get('/search', async (req, res) => {
 app.use('/recordings', async (req, res) => {
     const remoteUrl = REMOTE_RECORDING_SERVER_URL + req.originalUrl.replace('/recordings', '');
     const headers = {};
-    if (req.headers.range) {
-        headers['Range'] = req.headers.range;
-    }
+    if (req.headers.range) headers['Range'] = req.headers.range;
 
     try {
         const response = await fetch(remoteUrl, { headers });
         res.status(response.status);
         const headersToForward = ['content-range', 'content-length', 'content-type', 'accept-ranges'];
         headersToForward.forEach(header => {
-            if (response.headers.has(header)) {
-                res.set(header, response.headers.get(header));
-            }
+            if (response.headers.has(header)) res.set(header, response.headers.get(header));
         });
         response.body.pipe(res);
     } catch (error) {
-        console.error('Streaming Proxy Error:', error.message);
+        console.error('Streaming Error:', error.message);
         if (!res.headersSent) res.status(500).send('Streaming error');
     }
 });
