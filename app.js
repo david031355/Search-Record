@@ -52,13 +52,16 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (themeToggleBtn) {
         const themeIcon = themeToggleBtn.querySelector('i');
         const currentTheme = localStorage.getItem('theme');
+        
         if (currentTheme === 'dark') {
             document.body.classList.add('dark-mode');
             if(themeIcon) { themeIcon.classList.remove('fa-moon'); themeIcon.classList.add('fa-sun'); }
         }
+
         themeToggleBtn.addEventListener('click', () => {
             document.body.classList.toggle('dark-mode');
             const isDark = document.body.classList.contains('dark-mode');
+            
             if (themeIcon) {
                 themeIcon.className = isDark ? 'fas fa-sun' : 'fas fa-moon';
             }
@@ -84,13 +87,12 @@ document.addEventListener('DOMContentLoaded', async () => {
     const currentTimeDisplay = document.getElementById('player-current-time');
     const totalTimeDisplay = document.getElementById('player-total-time');
     
-    // --- משתני עריכה ---
     let wavesurfer = null;
     let wsRegions = null;
     const modal = document.getElementById('editor-modal');
     const closeModal = document.querySelector('.close-modal');
-    const waveStatus = document.getElementById('waveform-status');
-    const editorAudio = document.getElementById('editor-audio-element'); // אלמנט האודיו החדש
+    const loadingWave = document.getElementById('waveform-loading');
+    const editorAudio = document.getElementById('editor-audio-element');
 
     const checkSession = async () => {
         const storedUser = sessionStorage.getItem('radioUser');
@@ -240,7 +242,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         });
     }
 
-    // ניהול הנגן הקבוע
     if (resultsList && player && playerContainer) {
         resultsList.addEventListener('click', function(event) {
             const playButton = event.target.closest('.btn-listen');
@@ -264,10 +265,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         });
     }
 
-    // ==========================================
-    // ✨ לוגיקת עורך האודיו המהירה ✨
-    // ==========================================
-    
     if (modal && closeModal) {
         closeModal.onclick = () => {
             modal.classList.remove('show');
@@ -293,8 +290,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 const editorFilename = document.getElementById('editor-filename');
                 if (editorFilename) editorFilename.textContent = filename;
                 
-                // איפוס נגן העריכה
-                editorAudio.src = src; // טוען את המקור ישירות לאלמנט
+                editorAudio.src = src; 
                 
                 if (waveStatus) waveStatus.textContent = 'טוען גלי קול... (ניתן כבר לנגן ולבחור)';
                 const waveEl = document.getElementById('waveform');
@@ -304,15 +300,13 @@ document.addEventListener('DOMContentLoaded', async () => {
 
                 if (typeof WaveSurfer === 'undefined') return;
 
-                // ✨ שימוש ב-media: editorAudio במקום backend: MediaElement ✨
-                // זה מחבר את הגרף לאלמנט האודיו הקיים שנטען מהר
                 wavesurfer = WaveSurfer.create({
                     container: '#waveform',
                     waveColor: '#007bff',
                     progressColor: '#17a2b8',
                     cursorColor: '#333',
                     height: 128,
-                    media: editorAudio, // חיבור לאלמנט האודיו הקיים!
+                    media: editorAudio, 
                     plugins: [
                         WaveSurfer.Timeline.create({ container: '#wave-timeline' }),
                         WaveSurfer.Regions.create()
@@ -321,12 +315,10 @@ document.addEventListener('DOMContentLoaded', async () => {
 
                 wsRegions = wavesurfer.registerPlugin(WaveSurfer.Regions.create());
 
-                // כשהגרף מוכן (זה יכול לקחת זמן, אבל האודיו עובד מיד)
                 wavesurfer.on('ready', () => {
                     if (waveStatus) waveStatus.textContent = 'גלי הקול נטענו.';
                 });
                 
-                // הוספת אזור ברירת מחדל מיד, גם בלי גרף
                 wsRegions.addRegion({ start: 0, end: 60, color: 'rgba(40, 167, 69, 0.3)', drag: true, resize: true });
 
                 wsRegions.on('region-updated', (region) => updateRegionDisplay(region));
@@ -334,6 +326,16 @@ document.addEventListener('DOMContentLoaded', async () => {
                     updateRegionDisplay(region);
                     const regs = wsRegions.getRegions();
                     if (regs.length > 1) regs[0].remove();
+                });
+                
+                // הוספת אירועי Play/Pause לעדכון כפתור הנגינה בחלון העריכה
+                wavesurfer.on('play', () => {
+                    const btn = document.getElementById('btn-play-region');
+                    if (btn) btn.innerHTML = '<i class="fas fa-pause"></i> השהה נגינה';
+                });
+                wavesurfer.on('pause', () => {
+                    const btn = document.getElementById('btn-play-region');
+                    if (btn) btn.innerHTML = '<i class="fas fa-expand"></i> נגן בחירה';
                 });
             });
         }
@@ -351,10 +353,15 @@ document.addEventListener('DOMContentLoaded', async () => {
     const btnPlayRegion = document.getElementById('btn-play-region');
     if (btnPlayRegion) {
         btnPlayRegion.addEventListener('click', () => {
-            if (!wsRegions) return;
-            const regions = wsRegions.getRegions();
-            if (regions.length > 0) regions[0].play();
-            else wavesurfer.playPause();
+            // טוגל (Toggle) פליי/פאוז
+            if (wavesurfer.isPlaying()) {
+                wavesurfer.pause();
+            } else {
+                if (!wsRegions) return;
+                const regions = wsRegions.getRegions();
+                if (regions.length > 0) regions[0].play();
+                else wavesurfer.play();
+            }
         });
     }
 
@@ -381,7 +388,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         });
     }
 
-    // --- שאר קוד הנגן הקבוע (זהה לקודם) ---
     if (playPauseBtn && player) {
         const togglePlayPause = () => {
             if (player.src && (player.paused || player.ended)) player.play();
@@ -394,29 +400,30 @@ document.addEventListener('DOMContentLoaded', async () => {
         
         player.addEventListener('play', () => { playPauseBtn.innerHTML = pauseIconStr; });
         player.addEventListener('pause', () => { playPauseBtn.innerHTML = playIconStr; });
-    }
-    
-    if (skipForwardBtn) skipForwardBtn.addEventListener('click', () => { if(player.src) player.currentTime += 30; });
-    if (skipBackwardBtn) skipBackwardBtn.addEventListener('click', () => { if(player.src) player.currentTime -= 10; });
-    if (volumeSlider) volumeSlider.addEventListener('input', (e) => { player.volume = e.target.value; });
-    
-    if (seekSlider && currentTimeDisplay) {
-        player.addEventListener('timeupdate', () => {
-            if (player.duration) {
-                seekSlider.value = player.currentTime;
-                currentTimeDisplay.textContent = formatTime(player.currentTime);
-            }
-        });
-        seekSlider.addEventListener('input', () => {
-            if(player.src) player.currentTime = seekSlider.value;
-        });
-    }
-    
-    if (totalTimeDisplay) {
-        player.addEventListener('loadedmetadata', () => {
-            if(seekSlider) seekSlider.max = player.duration;
-            totalTimeDisplay.textContent = formatTime(player.duration);
-        });
+        player.addEventListener('ended', () => { playPauseBtn.innerHTML = playIconStr; });
+        
+        if (skipForwardBtn) skipForwardBtn.addEventListener('click', () => { if(player.src) player.currentTime += 30; });
+        if (skipBackwardBtn) skipBackwardBtn.addEventListener('click', () => { if(player.src) player.currentTime -= 10; });
+        if (volumeSlider) volumeSlider.addEventListener('input', (e) => { player.volume = e.target.value; });
+        
+        if (seekSlider && currentTimeDisplay) {
+            player.addEventListener('timeupdate', () => {
+                if (player.duration) {
+                    seekSlider.value = player.currentTime;
+                    currentTimeDisplay.textContent = formatTime(player.currentTime);
+                }
+            });
+            seekSlider.addEventListener('input', () => {
+                if(player.src) player.currentTime = seekSlider.value;
+            });
+        }
+        
+        if (totalTimeDisplay) {
+            player.addEventListener('loadedmetadata', () => {
+                if(seekSlider) seekSlider.max = player.duration;
+                totalTimeDisplay.textContent = formatTime(player.duration);
+            });
+        }
     }
     
     if (playerContainer && player && volumeSlider) {
