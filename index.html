@@ -1,28 +1,115 @@
-<div id="editor-modal" class="modal">
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>חיפוש הקלטות רדיו</title>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Rubik:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+
+    <link rel="stylesheet" href="style.css?v=2">
+</head>
+<body>
+    
+    <button id="theme-toggle" title="החלף ערכת נושא"><i class="fas fa-moon"></i></button>
+
+    <div id="login-container">
+        <h2>כניסת משתמש</h2>
+        <p id="login-message"></p>
+        <div class="login-field">
+            <label for="initial-username">שם משתמש:</label>
+            <input type="text" id="initial-username" required>
+        </div>
+        <div class="login-field">
+            <label for="initial-password">סיסמה:</label>
+            <input type="password" id="initial-password" required>
+        </div>
+        <button id="login-btn">כניסה</button>
+    </div>
+
+    <div id="main-content" class="hidden">
+        <h1>חיפוש הקלטות רדיו 📻</h1>
+        <p class="subtitle">פותח בלעדית עבור חיים קורץ - כל הזכויות שמורות ©</p>
+
+        <form id="search-form" class="search-form">
+            <label for="station">בחר תחנה:</label>
+            <select id="station">
+                <option value="kcm">קול חי מיוזיק</option>
+                <option value="kol_chai">קול חי</option>
+                <option value="kol_play">קול פליי</option>
+                <option value="kolbarama">קול ברמה</option>
+            </select>
+            <label for="date">בחר תאריך:</label>
+            <input type="date" id="date" required>
+            <label for="hour">בחר שעה (אופציונלי):</label>
+            <input type="number" id="hour" min="0" max="23" placeholder="כל השעות">
+            <button type="submit">חפש</button> 
+        </form>
+
+        <hr>
+        
+        <div class="results">
+            <h2>תוצאות חיפוש:</h2>
+            <div id="loading">... טוען הקלטות מהשרת המרוחק...</div>
+            <ul id="results-list"></ul>
+        </div>
+    </div>
+
+    <div class="persistent-player" id="persistent-player">
+        <audio id="main-player"></audio>
+        <div class="player-episode-info">
+            <img id="player-episode-art" src="data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs=" alt="">
+            <span id="player-episode-title">בחר הקלטה להאזנה...</span>
+        </div>
+        <div class="player-main-controls">
+            <div class="player-buttons">
+                <button id="player-skip-backward" class="player-btn" title="10 שניות אחורה"><i class="fas fa-undo"></i></button>
+                <button id="player-play-pause" class="player-btn" title="נגן/השהה"><i class="fas fa-play"></i></button>
+                <button id="player-skip-forward" class="player-btn" title="30 שניות קדימה"><i class="fas fa-redo"></i></button>
+            </div>
+            <div class="player-progress">
+                <span id="player-current-time">0:00</span>
+                <input type="range" id="player-seek-slider" min="0" max="100" value="0">
+                <span id="player-total-time">0:00</span>
+            </div>
+        </div>
+        <div class="player-volume-controls">
+            <i class="fas fa-volume-down"></i>
+            <input type="range" id="player-volume-slider" min="0" max="1" step="0.01" value="1">
+            <i class="fas fa-volume-up"></i>
+        </div>
+    </div>
+
+    <div id="editor-modal" class="modal">
         <div class="modal-content">
             <span class="close-modal">&times;</span>
             <h2>עריכת הקלטה</h2>
             <p id="editor-filename" style="direction: ltr; text-align: center; color: var(--text-light);"></p>
             
             <audio id="editor-audio-element" style="width: 100%; margin-bottom: 10px;" controls></audio>
-
-            <div id="waveform-status" style="font-size: 0.9em; color: var(--primary-color); text-align: center; margin-bottom: 5px;">
-                טוען גלי קול... (ניתן להאזין ולחתוך בזמן הטעינה)
-            </div>
             
+            <div id="waveform-loading">טוען קובץ...</div>
             <div id="waveform"></div>
             <div id="wave-timeline"></div>
 
             <div class="editor-controls">
-                <button id="btn-play-region" class="editor-btn"><i class="fas fa-expand"></i> נגן אזור מסומן</button>
-                
+                <button id="btn-play-region" class="editor-btn"><i class="fas fa-expand"></i> נגן בחירה</button>
                 <div class="time-inputs">
                     <div><label>התחלה:</label> <span id="region-start">0:00</span></div>
                     <div><label>סיום:</label> <span id="region-end">0:00</span></div>
                     <div><label>סה"כ:</label> <span id="region-duration" style="font-weight: bold;">0:00</span></div>
                 </div>
-                
                 <button id="btn-download-cut" class="editor-btn download-btn"><i class="fas fa-cut"></i> חתוך והורד</button>
             </div>
         </div>
     </div>
+
+    <script src="https://unpkg.com/wavesurfer.js@7"></script>
+    <script src="https://unpkg.com/wavesurfer.js@7/dist/plugins/regions.min.js"></script>
+    <script src="https://unpkg.com/wavesurfer.js@7/dist/plugins/timeline.min.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>
