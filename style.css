@@ -164,7 +164,7 @@ button:disabled, #login-btn:disabled {
     display: flex; 
     flex-direction: column; 
     align-items: center;   
-    gap: 10px;             
+    gap: 12px;             
     padding: 15px;
     margin-bottom: 10px;
     border-bottom: 1px solid var(--border-color);
@@ -204,7 +204,9 @@ audio {
 
 .result-actions {
     display: flex;
-    gap: 10px; 
+    gap: 10px;
+    width: 100%;
+    justify-content: center;
 }
 
 .btn-listen, .download-button, .btn-edit {
