@@ -1,6 +1,417 @@
-/* ... (כל העיצוב הקודם נשאר אותו דבר, הוסף את זה בסוף) ... */
+:root {
+    --primary-color: #007bff;
+    --primary-hover: #0056b3;
+    --secondary-color: #17a2b8;
+    --secondary-hover: #138496;
+    --bg-color: #f4f7f6;
+    --card-bg: #ffffff;
+    --text-color: #333;
+    --text-light: #555;
+    --border-color: #ccc;
+    --input-bg: #ffffff;
+    --player-height: 90px;
+}
 
-/* --- 14. עיצוב חלון העריכה (Modal) --- */
+body.dark-mode {
+    --bg-color: #121212;
+    --card-bg: #1e1e1e;
+    --text-color: #e0e0e0;
+    --text-light: #aaaaaa;
+    --border-color: #444;
+    --input-bg: #2c2c2c;
+    --primary-color: #0d6efd; 
+}
+
+body {
+    font-family: 'Rubik', Arial, sans-serif; 
+    background-color: var(--bg-color);
+    color: var(--text-color);
+    line-height: 1.6;
+    direction: rtl;
+    margin: 0;
+    padding: 20px;
+    padding-bottom: var(--player-height); 
+    transition: background-color 0.3s, color 0.3s;
+}
+
+h1, h2 {
+    text-align: center;
+    color: var(--primary-color); 
+}
+h1 { font-weight: 700; }
+h2 { font-weight: 500; }
+.subtitle {
+    text-align: center;
+    font-size: 0.9em;
+    color: var(--text-light);
+    margin-top: -15px;
+}
+hr {
+    border: none;
+    border-top: 1px solid var(--border-color);
+    margin: 30px 0;
+}
+
+#login-container, #main-content {
+    max-width: 900px;
+    margin: 20px auto;
+    padding: 25px 30px;
+    background-color: var(--card-bg);
+    border-radius: 12px; 
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1); 
+    transition: background-color 0.3s;
+}
+
+#login-container {
+    max-width: 400px; 
+    margin-top: 80px;
+}
+.login-field {
+    margin-bottom: 15px;
+    text-align: right;
+}
+.login-field label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: 500;
+}
+
+input[type="text"],
+input[type="password"],
+input[type="date"],
+input[type="number"],
+select {
+    width: 95%;
+    padding: 12px;
+    border: 1px solid var(--border-color);
+    background-color: var(--input-bg);
+    color: var(--text-color);
+    border-radius: 6px;
+    font-size: 1em;
+    font-family: 'Rubik', Arial, sans-serif;
+    transition: border-color 0.3s, box-shadow 0.3s, background-color 0.3s;
+}
+input:focus, select:focus {
+    border-color: var(--primary-color);
+    box-shadow: 0 0 5px rgba(0,123,255,0.25);
+    outline: none;
+}
+
+button, #login-btn {
+    background-color: var(--primary-color); 
+    color: white;
+    font-weight: 500;
+    font-size: 1em;
+    padding: 12px 20px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background-color 0.3s ease, transform 0.2s;
+}
+button:hover, #login-btn:hover {
+    background-color: var(--primary-hover); 
+    transform: translateY(-2px); 
+}
+button:disabled, #login-btn:disabled {
+    background-color: #aaa;
+    cursor: not-allowed;
+}
+
+#theme-toggle {
+    position: fixed;
+    top: 20px;
+    left: 20px;
+    background: var(--card-bg);
+    color: var(--text-color);
+    border: 1px solid var(--border-color);
+    border-radius: 50%;
+    width: 45px;
+    height: 45px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    z-index: 1100;
+    transition: all 0.3s ease;
+}
+#theme-toggle:hover {
+    transform: scale(1.1);
+    background-color: var(--bg-color);
+}
+
+.search-form {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: center;
+    gap: 15px;
+    margin-bottom: 30px;
+}
+.search-form label {
+    font-weight: 500;
+}
+.search-form input, .search-form select {
+    width: auto;
+    min-width: 150px;
+}
+
+.results {
+    border-top: 1px solid var(--border-color);
+    padding-top: 20px;
+}
+#results-list li {
+    display: flex; 
+    flex-direction: column; 
+    align-items: center;   
+    gap: 10px;             
+    padding: 15px;
+    margin-bottom: 10px;
+    border-bottom: 1px solid var(--border-color);
+    transition: background-color 0.2s;
+}
+#results-list li:hover {
+    background-color: rgba(0,0,0,0.03);
+}
+#results-list a {
+    text-decoration: none;
+    color: var(--primary-color);
+    font-weight: 500;
+    font-size: 1.1em;
+}
+audio {
+    display: none;
+}
+
+.result-metadata {
+    font-size: 0.9em;
+    color: var(--text-light);
+    margin-top: -5px; 
+}
+
+#loading {
+    text-align: center;
+    display: none;
+    color: #28a745; 
+    font-weight: 500;
+    font-size: 1.2em;
+}
+#login-message {
+    color: #dc3545; 
+    min-height: 1.2em;
+    font-weight: 500;
+}
+
+.result-actions {
+    display: flex;
+    gap: 10px; 
+}
+
+.btn-listen, .download-button, .btn-edit {
+    color: white !important; 
+    padding: 8px 14px;
+    border-radius: 6px;
+    text-decoration: none; 
+    font-size: 0.9em;
+    font-weight: 500;
+    transition: background-color 0.3s ease, transform 0.2s;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px; 
+    border: none;
+    cursor: pointer;
+}
+
+.btn-listen:hover, .download-button:hover, .btn-edit:hover {
+    color: white !important;
+    transform: translateY(-2px); 
+}
+
+.btn-listen {
+    background-color: var(--secondary-color); 
+}
+.btn-listen:hover {
+    background-color: var(--secondary-hover);
+}
+.download-button {
+    background-color: var(--primary-color); 
+}
+.download-button:hover {
+    background-color: var(--primary-hover); 
+}
+.btn-edit {
+    background-color: #ffc107;
+    color: #333 !important;
+}
+.btn-edit:hover {
+    background-color: #e0a800;
+}
+
+.persistent-player {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: var(--player-height);
+    background: var(--card-bg);
+    border-top: 1px solid var(--border-color);
+    box-shadow: 0 -5px 20px rgba(0,0,0,0.1);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 25px;
+    box-sizing: border-box;
+    direction: ltr;
+    transform: translateY(100%);
+    transition: transform 0.3s ease-out, background-color 0.3s;
+    z-index: 1000;
+}
+.persistent-player.visible {
+    transform: translateY(0);
+}
+
+.player-episode-info {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    min-width: 200px;
+    flex-shrink: 1;
+}
+
+#player-episode-art {
+    width: 80px; 
+    height: 60px; 
+    border-radius: 8px;
+    background: #f0f0f0; 
+    object-fit: contain; 
+}
+
+#player-episode-title {
+    font-weight: 600;
+    color: var(--text-color);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.player-main-controls {
+    flex-grow: 1;
+    max-width: 600px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 0 20px;
+}
+.player-buttons {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+}
+
+.player-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 1.2em;
+    color: var(--text-color);
+    width: 40px;
+    text-align: center;
+    outline: none; 
+}
+.player-btn:focus, .player-btn:active {
+    outline: none;
+    box-shadow: none;
+}
+
+.player-btn#player-play-pause {
+    font-size: 2.0em;
+    color: var(--primary-color);
+}
+.player-btn:hover { color: var(--primary-hover); }
+
+.player-progress {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-top: 5px;
+}
+.player-progress span {
+    font-size: 0.85em;
+    color: var(--text-light);
+    min-width: 40px;
+    text-align: center;
+}
+
+#player-seek-slider, #player-volume-slider {
+    background: var(--border-color);
+}
+
+#player-seek-slider {
+    flex-grow: 1;
+    -webkit-appearance: none;
+    appearance: none;
+    width: 100%;
+    height: 5px;
+    border-radius: 5px;
+    outline: none;
+    cursor: pointer;
+}
+#player-seek-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 15px;
+    height: 15px;
+    background: var(--primary-color);
+    border-radius: 50%;
+    cursor: pointer;
+}
+#player-seek-slider::-moz-range-thumb {
+    width: 15px;
+    height: 15px;
+    background: var(--primary-color);
+    border-radius: 50%;
+    cursor: pointer;
+}
+
+.player-volume-controls {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-width: 150px;
+    justify-content: flex-end;
+}
+.player-volume-controls i {
+    color: var(--text-light);
+    font-size: 1.1em;
+}
+#player-volume-slider {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 80px;
+    height: 4px;
+    border-radius: 5px;
+    outline: none;
+    cursor: pointer;
+}
+#player-volume-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 14px;
+    height: 14px;
+    background: var(--primary-color);
+    border-radius: 50%;
+    cursor: pointer;
+}
+#player-volume-slider::-moz-range-thumb {
+    width: 14px;
+    height: 14px;
+    background: var(--primary-color);
+    border-radius: 50%;
+    cursor: pointer;
+}
+
 .modal {
     display: none; 
     position: fixed; 
@@ -90,17 +501,61 @@
 }
 
 .editor-btn.download-btn {
-    background-color: #28a745; /* ירוק לחיתוך */
+    background-color: #28a745;
 }
 .editor-btn.download-btn:hover {
     background-color: #218838;
 }
 
-/* כפתור עריכה ברשימה */
-.btn-edit {
-    background-color: #ffc107; /* צהוב/כתום */
-    color: #333 !important;
+.hidden {
+    display: none !important;
 }
-.btn-edit:hover {
-    background-color: #e0a800;
+
+@media (max-width: 768px) {
+    body {
+        padding: 10px;
+        padding-bottom: calc(var(--player-height) + 10px); 
+    }
+    #login-container, #main-content {
+        padding: 15px;
+    }
+    .search-form {
+        flex-direction: column; 
+        gap: 20px;
+    }
+    .search-form input, .search-form select, .search-form button {
+        width: 90%; 
+    }
+    
+    #results-list li {
+        gap: 12px;
+    }
+    .result-actions {
+        display: flex;
+        gap: 10px;
+        width: 100%;
+        justify-content: center;
+    }
+    
+    .persistent-player {
+        padding: 0 10px;
+        height: 80px; 
+    }
+    .player-episode-info {
+        min-width: 0;
+        flex-basis: 150px;
+    }
+    #player-episode-art {
+        width: 60px;
+        height: 45px;
+    }
+    #player-episode-title {
+        font-size: 0.9em;
+    }
+    .player-volume-controls {
+        display: none; 
+    }
+    .player-main-controls {
+        padding: 0 5px;
+    }
 }
