@@ -412,7 +412,6 @@ audio {
     cursor: pointer;
 }
 
-/* --- ✨ עיצוב חלון העריכה (Modal) - החלק החסר אצלך ✨ --- */
 .modal {
     display: none; 
     position: fixed; 
@@ -436,12 +435,12 @@ audio {
     padding: 25px;
     border: 1px solid var(--border-color);
     width: 90%;
-    max-width: 800px;
+    max-width: 1000px;
     border-radius: 12px;
     box-shadow: 0 5px 25px rgba(0,0,0,0.3);
     position: relative;
     color: var(--text-color);
-    text-align: center; /* מרכוז תוכן המודל */
+    text-align: center;
 }
 
 .close-modal {
@@ -468,7 +467,7 @@ audio {
 
 #waveform-loading {
     text-align: center;
-    padding: 20px;
+    padding: 30px;
     font-style: italic;
     color: var(--primary-color);
 }
@@ -564,7 +563,6 @@ audio {
         padding: 0 5px;
     }
     
-    /* התאמות מודל למובייל */
     .editor-controls {
         flex-direction: column;
     }
