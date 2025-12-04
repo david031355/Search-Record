@@ -87,11 +87,11 @@ document.addEventListener('DOMContentLoaded', async () => {
     const currentTimeDisplay = document.getElementById('player-current-time');
     const totalTimeDisplay = document.getElementById('player-total-time');
     
-    // משתני עריכה
     let wavesurfer = null;
     let wsRegions = null;
     const modal = document.getElementById('editor-modal');
     const closeModal = document.querySelector('.close-modal');
+    const loadingWave = document.getElementById('waveform-loading');
     const editorAudio = document.getElementById('editor-audio-element');
 
     const checkSession = async () => {
@@ -265,7 +265,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         });
     }
 
-    // --- לוגיקת עורך ---
     if (modal && closeModal) {
         closeModal.onclick = () => {
             modal.classList.remove('show');
@@ -291,13 +290,12 @@ document.addEventListener('DOMContentLoaded', async () => {
                 const editorFilename = document.getElementById('editor-filename');
                 if (editorFilename) editorFilename.textContent = filename;
                 
-                // הגדרה בטוחה של הסטטוס
                 const waveStatus = document.getElementById('waveform-loading');
                 if (waveStatus) waveStatus.style.display = 'block';
+                if (waveStatus) waveStatus.textContent = 'טוען גלי קול... (ניתן כבר לנגן ולבחור)';
 
-                // טעינה מיידית לנגן האודיו הרגיל
                 if (editorAudio) {
-                    editorAudio.src = src;
+                    editorAudio.src = src; 
                     editorAudio.load();
                 }
                 
@@ -306,7 +304,11 @@ document.addEventListener('DOMContentLoaded', async () => {
                 
                 modal.setAttribute('data-current-url', src);
 
-                if (typeof WaveSurfer === 'undefined') return;
+                if (typeof WaveSurfer === 'undefined') {
+                    console.error("WaveSurfer library not loaded!");
+                    if (waveEl) waveEl.innerHTML = "שגיאה: ספריית העריכה לא נטענה.";
+                    return;
+                }
 
                 wavesurfer = WaveSurfer.create({
                     container: '#waveform',
@@ -314,19 +316,24 @@ document.addEventListener('DOMContentLoaded', async () => {
                     progressColor: '#17a2b8',
                     cursorColor: '#333',
                     height: 128,
-                    media: editorAudio, // חיבור לנגן הקיים
-                    fetchMedia: false,  // מונע טעינה כפולה
+                    // MediaElement הוסר לטובת יציבות
                     plugins: [
                         WaveSurfer.Timeline.create({ container: '#wave-timeline' }),
                         WaveSurfer.Regions.create()
                     ]
                 });
 
+                wavesurfer.load(src);
                 wsRegions = wavesurfer.registerPlugin(WaveSurfer.Regions.create());
 
                 wavesurfer.on('ready', () => {
                     if (waveStatus) waveStatus.style.display = 'none';
                     wsRegions.addRegion({ start: 0, end: 60, color: 'rgba(40, 167, 69, 0.3)', drag: true, resize: true });
+                });
+
+                wavesurfer.on('error', (e) => {
+                    console.error("WaveSurfer Error:", e);
+                    if (waveStatus) waveStatus.textContent = "שגיאה בטעינת הגרף (האודיו עדיין פועל)";
                 });
 
                 wsRegions.on('region-updated', (region) => updateRegionDisplay(region));
