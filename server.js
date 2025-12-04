@@ -3,19 +3,16 @@ const fetchModule = require('node-fetch');
 const fetch = fetchModule.default || fetchModule;
 const path = require('path');
 const { JSDOM } = require('jsdom');
-
-// --- תוספות לעריכת אודיו ---
 const ffmpeg = require('fluent-ffmpeg');
 const ffmpegPath = require('ffmpeg-static');
-// אומר לשרת להשתמש ב-ffmpeg שהורדנו מקומית
+
 ffmpeg.setFfmpegPath(ffmpegPath);
-// ---------------------------
 
 const app = express();
 const PORT = process.env.PORT || 3000; 
 
-const REMOTE_RECORDING_SERVER_URL = 'http://192.168.1.10'; 
-const RENDER_PUBLIC_URL = process.env.RENDER_EXTERNAL_URL; 
+const REMOTE_RECORDING_SERVER_URL = process.env.REMOTE_RECORDING_SERVER_URL || 'http://192.168.1.10'; 
+const RENDER_PUBLIC_URL = process.env.RENDER_EXTERNAL_URL;
 
 const VALID_USERS = [];
 if (process.env.AUTH_USER && process.env.AUTH_PASS) {
@@ -36,29 +33,22 @@ if (VALID_USERS.length === 0) {
 
 app.use(express.static(__dirname)); 
 
-// --- ✨ נתיב חדש: חיתוך הקלטה ✨ ---
 app.get('/trim', (req, res) => {
     const { url, start, duration, filename } = req.query;
 
     if (!url || !start || !duration) {
-        return res.status(400).send('Missing parameters (url, start, duration)');
+        return res.status(400).send('Missing parameters');
     }
 
-    // הופך את ה-URL של Render חזרה ל-URL של שרת ההקלטות המקורי
     let remoteFileUrl = url;
     if (url.includes('/recordings/')) {
-        // לדוגמה: משמיט את https://.../recordings/ ומחבר לשרת המקורי
         const relativePath = url.split('/recordings/')[1];
         remoteFileUrl = `${REMOTE_RECORDING_SERVER_URL}/${relativePath}`;
     }
 
-    console.log(`Starting trim: ${filename} | Start: ${start}s | Duration: ${duration}s`);
-
-    // מגדיר את הקובץ כהורדה בדפדפן
     res.header('Content-Disposition', `attachment; filename="cut_${filename || 'recording.mp3'}"`);
     res.header('Content-Type', 'audio/mpeg');
 
-    // ביצוע החיתוך והזרמה ישירה למשתמש
     ffmpeg(remoteFileUrl)
         .setStartTime(start)
         .setDuration(duration)
@@ -66,18 +56,12 @@ app.get('/trim', (req, res) => {
         .audioCodec('libmp3lame')
         .on('error', (err) => {
             console.error('Error trimming file:', err);
-            // אם ההורדה כבר התחילה אי אפשר לשלוח סטטוס שגיאה, אבל נרשום בלוג
             if (!res.headersSent) {
                 res.status(500).send('Error processing file');
             }
         })
-        .on('end', () => {
-            console.log('Trim finished successfully');
-        })
         .pipe(res, { end: true });
 });
-// -----------------------------------
-
 
 app.get('/search', async (req, res) => {
     const { station, date, hour, user, pass } = req.query; 
@@ -87,7 +71,7 @@ app.get('/search', async (req, res) => {
     });
 
     if (!isAuthenticated) {
-        return res.status(401).json({ error: 'שם משתמש או סיסמה שגויים.' });
+        return res.status(401).json({ error: 'User or password incorrect' });
     }
     
     if (!station || !date) {
@@ -129,7 +113,7 @@ app.get('/search', async (req, res) => {
             const targetHour = parseInt(hour, 10);
             
             if (isNaN(targetHour) || targetHour < 0 || targetHour > 23) {
-                return res.status(400).json({ error: 'שעה לא תקינה. יש לבחור מספר בין 0 ל-23.' });
+                return res.status(400).json({ error: 'Invalid hour' });
             }
 
             recordings = recordings.filter(file => {
@@ -138,6 +122,7 @@ app.get('/search', async (req, res) => {
                 const fileHourStr = fileNameWithoutExtension.replace(prefix, '');
                 
                 if (fileHourStr === "") return false; 
+                
                 const fileHour = parseInt(fileHourStr, 10);
                 
                 return fileHour === targetHour;
