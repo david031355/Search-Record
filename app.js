@@ -245,7 +245,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (resultsList && player && playerContainer) {
         resultsList.addEventListener('click', function(event) {
             const playButton = event.target.closest('.btn-listen');
-            // אם זה לא כפתור עריכה
             if (playButton && !playButton.classList.contains('btn-edit')) {
                 const src = playButton.getAttribute('data-src');
                 const title = playButton.getAttribute('data-title');
@@ -266,9 +265,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         });
     }
 
-    // ==========================================
-    // ✨ לוגיקת עורך האודיו (עם התיקון לסטרימינג) ✨
-    // ==========================================
     if (modal && closeModal) {
         closeModal.onclick = () => {
             modal.classList.remove('show');
@@ -278,7 +274,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             }
             if (editorAudio) {
                 editorAudio.pause();
-                editorAudio.src = ''; // ניקוי הנגן
+                editorAudio.src = '';
             }
         };
 
@@ -296,13 +292,11 @@ document.addEventListener('DOMContentLoaded', async () => {
                 
                 const waveStatus = document.getElementById('waveform-loading');
                 if (waveStatus) waveStatus.style.display = 'block';
-                if (waveStatus) waveStatus.textContent = 'טוען גלי קול... (האודיו מוכן לנגינה מיד)';
+                if (waveStatus) waveStatus.textContent = 'טוען גלי קול... (ניתן כבר לנגן ולבחור)';
 
-                // ✨ תיקון: קודם כל מפעילים את האודיו הטבעי של הדפדפן! ✨
                 if (editorAudio) {
-                    editorAudio.crossOrigin = "anonymous"; // חשוב ל-CORS
+                    editorAudio.crossOrigin = "anonymous";
                     editorAudio.src = src; 
-                    // לא חייבים .load() מפורש, הדפדפן יעשה את זה
                 }
                 
                 const waveEl = document.getElementById('waveform');
@@ -310,28 +304,28 @@ document.addEventListener('DOMContentLoaded', async () => {
                 
                 modal.setAttribute('data-current-url', src);
 
-                if (typeof WaveSurfer === 'undefined') return;
+                if (typeof WaveSurfer === 'undefined') {
+                    console.error("WaveSurfer library not loaded!");
+                    if (waveEl) waveEl.innerHTML = "שגיאה: ספריית העריכה לא נטענה.";
+                    return;
+                }
 
-                // ✨ חיבור WaveSurfer לאלמנט הקיים ✨
                 wavesurfer = WaveSurfer.create({
                     container: '#waveform',
                     waveColor: '#007bff',
                     progressColor: '#17a2b8',
                     cursorColor: '#333',
                     height: 128,
-                    media: editorAudio, // <--- זה הסוד! מתחבר לאלמנט שכבר מזרים
+                    media: editorAudio, 
+                    fetchMedia: true, // כדי שנוכל לראות את הגלים, חייבים fetch
                     plugins: [
                         WaveSurfer.Timeline.create({ container: '#wave-timeline' }),
                         WaveSurfer.Regions.create()
                     ]
                 });
 
-                // ⚠️ הערה: לא קוראים ל-wavesurfer.load() כאן!
-                // בגלל שהגדרנו 'media', הוא יקח את המידע משם.
-
                 wsRegions = wavesurfer.registerPlugin(WaveSurfer.Regions.create());
 
-                // הגרף יופיע כשהנתונים יגיעו, אבל האודיו ינגן מיד
                 wavesurfer.on('ready', () => {
                     if (waveStatus) waveStatus.style.display = 'none';
                     wsRegions.addRegion({ start: 0, end: 60, color: 'rgba(40, 167, 69, 0.3)', drag: true, resize: true });
@@ -339,7 +333,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
                 wavesurfer.on('error', (e) => {
                     console.error("WaveSurfer Error:", e);
-                    if (waveStatus) waveStatus.textContent = "שגיאה בציור הגרף (אך ניתן להאזין ולחתוך)";
+                    if (waveStatus) waveStatus.textContent = "שגיאה בטעינת הגרף (האודיו עדיין פועל)";
                 });
 
                 wsRegions.on('region-updated', (region) => updateRegionDisplay(region));
