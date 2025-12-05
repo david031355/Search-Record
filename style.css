@@ -515,11 +515,15 @@ audio {
 
 .hidden {
     display: none !important;
-    visibility: hidden !important;
-    opacity: 0 !important;
-    height: 0 !important;
-    overflow: hidden !important;
 }
+
+/* --- עיצוב מיוחד לאזור הבחירה (גבולות בולטים) --- */
+.wavesurfer-region {
+    border-left: 2px solid #fff !important;
+    border-right: 2px solid #fff !important;
+    box-shadow: 0 0 5px rgba(0,0,0,0.5);
+}
+/* ------------------------------------------ */
 
 @media (max-width: 768px) {
     body {
