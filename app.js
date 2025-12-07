@@ -237,7 +237,6 @@ document.addEventListener('DOMContentLoaded', async () => {
             } catch (error) {
                 if (loadingDiv) loadingDiv.style.display = 'none';
                 resultsList.innerHTML = `<li>שגיאה: ${error.message}</li>`;
-                console.error('Search error:', error);
             }
         });
     }
@@ -293,13 +292,14 @@ document.addEventListener('DOMContentLoaded', async () => {
                 const waveStatus = document.getElementById('waveform-loading');
                 if (waveStatus) {
                     waveStatus.style.display = 'block';
-                    waveStatus.textContent = 'טוען גלי קול... (ניתן כבר לנגן ולבחור)';
+                    waveStatus.textContent = 'טוען גלי קול... (ניתן כבר לנגן בנגן למעלה)';
                 }
 
+                // 1. טעינת נגן האודיו הרגיל (סטרימינג מיידי)
                 if (editorAudio) {
                     editorAudio.crossOrigin = "anonymous";
                     editorAudio.src = src;
-                    // הדפדפן יטען אוטומטית, לא צריך load
+                    editorAudio.load(); // מתחיל לטעון באפר מיד
                 }
                 
                 const waveEl = document.getElementById('waveform');
@@ -309,14 +309,14 @@ document.addEventListener('DOMContentLoaded', async () => {
 
                 if (typeof WaveSurfer === 'undefined') return;
 
+                // 2. חיבור WaveSurfer (הוא יצייר ברקע)
                 wavesurfer = WaveSurfer.create({
                     container: '#waveform',
                     waveColor: '#007bff',
                     progressColor: '#17a2b8',
                     cursorColor: '#333',
                     height: 128,
-                    media: editorAudio, // מחובר לנגן הקיים
-                    fetchMedia: false, // מונע הורדה כפולה
+                    media: editorAudio, // חיבור לאלמנט האודיו הקיים
                     plugins: [
                         WaveSurfer.Timeline.create({ container: '#wave-timeline' }),
                         WaveSurfer.Regions.create()
@@ -325,26 +325,16 @@ document.addEventListener('DOMContentLoaded', async () => {
 
                 wsRegions = wavesurfer.registerPlugin(WaveSurfer.Regions.create());
 
-                wavesurfer.on('ready', () => {
-                    if (waveStatus) waveStatus.style.display = 'none';
-                    // אזור ברירת מחדל: 60 שניות ראשונות
-                    wsRegions.addRegion({ start: 0, end: 60, color: 'rgba(0, 255, 204, 0.2)', drag: true, resize: true });
+                // ✨ אינדיקטור טעינה באחוזים ✨
+                wavesurfer.on('loading', (percent) => {
+                    if (waveStatus) {
+                        waveStatus.textContent = `טוען גלי קול... ${percent}% (ניתן כבר לנגן)`;
+                    }
                 });
 
-                // ניהול עצירה בסוף אזור
-                wavesurfer.on('timeupdate', (currentTime) => {
-                     const btn = document.getElementById('btn-play-region');
-                     // אם אנחנו במצב ניגון אזור
-                     if (btn && btn.getAttribute('data-playing-region') === 'true') {
-                         const regions = wsRegions.getRegions();
-                         if (regions.length > 0) {
-                             if (currentTime >= regions[0].end) {
-                                 wavesurfer.pause();
-                                 btn.setAttribute('data-playing-region', 'false');
-                                 btn.innerHTML = '<i class="fas fa-play"></i> נגן בחירה';
-                             }
-                         }
-                     }
+                wavesurfer.on('ready', () => {
+                    if (waveStatus) waveStatus.style.display = 'none';
+                    wsRegions.addRegion({ start: 0, end: 60, color: 'rgba(0, 255, 204, 0.2)', drag: true, resize: true });
                 });
 
                 wsRegions.on('region-updated', (region) => updateRegionDisplay(region));
@@ -352,6 +342,30 @@ document.addEventListener('DOMContentLoaded', async () => {
                     updateRegionDisplay(region);
                     const regs = wsRegions.getRegions();
                     if (regs.length > 1) regs[0].remove();
+                });
+                
+                wavesurfer.on('play', () => {
+                    const btn = document.getElementById('btn-play-region');
+                    if (btn) btn.innerHTML = '<i class="fas fa-pause"></i> השהה';
+                });
+                wavesurfer.on('pause', () => {
+                    const btn = document.getElementById('btn-play-region');
+                    if (btn) btn.innerHTML = '<i class="fas fa-expand"></i> נגן בחירה';
+                });
+                
+                // עצירה בסוף בחירה
+                wavesurfer.on('timeupdate', (currentTime) => {
+                     const btn = document.getElementById('btn-play-region');
+                     // ה-attribute הזה נשמר כשלוחצים על "נגן בחירה" (צריך להוסיף את זה למטה)
+                     if (btn && btn.getAttribute('data-playing-region') === 'true') {
+                         const regions = wsRegions.getRegions();
+                         if (regions.length > 0) {
+                             if (currentTime >= regions[0].end) {
+                                 wavesurfer.pause();
+                                 btn.setAttribute('data-playing-region', 'false');
+                             }
+                         }
+                     }
                 });
             });
         }
@@ -371,18 +385,18 @@ document.addEventListener('DOMContentLoaded', async () => {
         btnPlayRegion.addEventListener('click', () => {
             if (!wavesurfer || !wsRegions) return;
             const regions = wsRegions.getRegions();
-            if (regions.length === 0) return;
-
+            
             if (wavesurfer.isPlaying()) {
                 wavesurfer.pause();
                 btnPlayRegion.setAttribute('data-playing-region', 'false');
-                btnPlayRegion.innerHTML = '<i class="fas fa-play"></i> נגן בחירה';
             } else {
-                // קפיצה להתחלה וניגון
-                wavesurfer.setTime(regions[0].start);
-                wavesurfer.play();
-                btnPlayRegion.setAttribute('data-playing-region', 'true');
-                btnPlayRegion.innerHTML = '<i class="fas fa-pause"></i> הפסק נגינה';
+                if (regions.length > 0) {
+                    wavesurfer.setTime(regions[0].start);
+                    wavesurfer.play();
+                    btnPlayRegion.setAttribute('data-playing-region', 'true');
+                } else {
+                    wavesurfer.play();
+                }
             }
         });
     }
@@ -413,7 +427,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         });
     }
 
-    // ... (שאר הקוד של הנגן הראשי ללא שינוי) ...
     if (playPauseBtn && player) {
         const togglePlayPause = () => {
             if (player.src && (player.paused || player.ended)) player.play();
