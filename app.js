@@ -38,8 +38,6 @@ const sendAuthRequest = async (username, password) => {
 };
 
 document.addEventListener('DOMContentLoaded', async () => {
-    console.log("DOM loaded, initializing scripts...");
-
     const loginContainer = document.getElementById('login-container');
     const mainContent = document.getElementById('main-content');
     const themeToggleBtn = document.getElementById('theme-toggle');
@@ -178,8 +176,6 @@ document.addEventListener('DOMContentLoaded', async () => {
                     resultsList.innerHTML = `<li>לא נמצאו הקלטות.</li>`;
                 } else {
                     const [year, monthRaw, dayRaw] = date.split('-'); 
-                    const month = parseInt(monthRaw, 10).toString(); 
-                    const day = parseInt(dayRaw, 10).toString();
 
                     files.forEach(file => {
                         const listItem = document.createElement('li');
@@ -264,6 +260,9 @@ document.addEventListener('DOMContentLoaded', async () => {
         });
     }
 
+    // ==========================================
+    // ✨ לוגיקת עורך האודיו המתוקנת ✨
+    // ==========================================
     if (modal && closeModal) {
         closeModal.onclick = () => {
             modal.classList.remove('show');
@@ -292,14 +291,14 @@ document.addEventListener('DOMContentLoaded', async () => {
                 const waveStatus = document.getElementById('waveform-loading');
                 if (waveStatus) {
                     waveStatus.style.display = 'block';
-                    waveStatus.textContent = 'טוען גלי קול... (ניתן כבר לנגן בנגן למעלה)';
+                    waveStatus.textContent = 'טוען גלי קול... (ניתן להאזין ולחתוך בזמן הטעינה)';
                 }
 
                 // 1. טעינת נגן האודיו הרגיל (סטרימינג מיידי)
                 if (editorAudio) {
                     editorAudio.crossOrigin = "anonymous";
                     editorAudio.src = src;
-                    editorAudio.load(); // מתחיל לטעון באפר מיד
+                    // אנחנו לא עושים load ידני, נותנים לדפדפן לנהל את זה
                 }
                 
                 const waveEl = document.getElementById('waveform');
@@ -309,14 +308,16 @@ document.addEventListener('DOMContentLoaded', async () => {
 
                 if (typeof WaveSurfer === 'undefined') return;
 
-                // 2. חיבור WaveSurfer (הוא יצייר ברקע)
+                // 2. יצירת WaveSurfer עם fetchMedia: true (כדי שהגלים יופיעו)
+                // אבל עם media: editorAudio (כדי שהנגינה תהיה מסונכרנת ומהירה)
                 wavesurfer = WaveSurfer.create({
                     container: '#waveform',
                     waveColor: '#007bff',
                     progressColor: '#17a2b8',
                     cursorColor: '#333',
                     height: 128,
-                    media: editorAudio, // חיבור לאלמנט האודיו הקיים
+                    media: editorAudio, // מסתנכרן עם הנגן הקיים
+                    fetchMedia: true,   // חובה! מוריד את הקובץ ברקע לציור הגרף
                     plugins: [
                         WaveSurfer.Timeline.create({ container: '#wave-timeline' }),
                         WaveSurfer.Regions.create()
@@ -325,16 +326,19 @@ document.addEventListener('DOMContentLoaded', async () => {
 
                 wsRegions = wavesurfer.registerPlugin(WaveSurfer.Regions.create());
 
-                // ✨ אינדיקטור טעינה באחוזים ✨
+                // מציג אחוזי טעינה
                 wavesurfer.on('loading', (percent) => {
-                    if (waveStatus) {
-                        waveStatus.textContent = `טוען גלי קול... ${percent}% (ניתן כבר לנגן)`;
-                    }
+                    if (waveStatus) waveStatus.textContent = `טוען גלי קול... ${percent}% (ניתן לנגן כרגיל)`;
                 });
 
                 wavesurfer.on('ready', () => {
                     if (waveStatus) waveStatus.style.display = 'none';
                     wsRegions.addRegion({ start: 0, end: 60, color: 'rgba(0, 255, 204, 0.2)', drag: true, resize: true });
+                });
+
+                wavesurfer.on('error', (e) => {
+                    console.error("WaveSurfer Error:", e);
+                    if (waveStatus) waveStatus.textContent = "שגיאה בציור הגרף (אך ניתן להאזין ולחתוך)";
                 });
 
                 wsRegions.on('region-updated', (region) => updateRegionDisplay(region));
@@ -344,6 +348,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                     if (regs.length > 1) regs[0].remove();
                 });
                 
+                // עדכון כפתור הנגינה לפי הסטטוס של WaveSurfer (שמחובר לאודיו)
                 wavesurfer.on('play', () => {
                     const btn = document.getElementById('btn-play-region');
                     if (btn) btn.innerHTML = '<i class="fas fa-pause"></i> השהה';
@@ -352,11 +357,10 @@ document.addEventListener('DOMContentLoaded', async () => {
                     const btn = document.getElementById('btn-play-region');
                     if (btn) btn.innerHTML = '<i class="fas fa-expand"></i> נגן בחירה';
                 });
-                
+
                 // עצירה בסוף בחירה
                 wavesurfer.on('timeupdate', (currentTime) => {
                      const btn = document.getElementById('btn-play-region');
-                     // ה-attribute הזה נשמר כשלוחצים על "נגן בחירה" (צריך להוסיף את זה למטה)
                      if (btn && btn.getAttribute('data-playing-region') === 'true') {
                          const regions = wsRegions.getRegions();
                          if (regions.length > 0) {
