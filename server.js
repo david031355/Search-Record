@@ -34,7 +34,7 @@ if (VALID_USERS.length === 0) {
 app.use(express.static(__dirname)); 
 
 app.get('/trim', (req, res) => {
-    const { url, start, duration, filename } = req.query;
+    const { url, start, duration, filename, fadein, fadeout } = req.query;
 
     if (!url || !start || !duration) {
         return res.status(400).send('Missing parameters');
@@ -49,10 +49,28 @@ app.get('/trim', (req, res) => {
     res.header('Content-Disposition', `attachment; filename="cut_${filename || 'recording.mp3'}"`);
     res.header('Content-Type', 'audio/mpeg');
 
-    ffmpeg()
+    const durationSec = parseFloat(duration);
+    const audioFilters = [];
+
+    if (fadein === 'true') {
+        audioFilters.push('afade=t=in:ss=0:d=3');
+    }
+
+    if (fadeout === 'true') {
+        const fadeOutStart = Math.max(0, durationSec - 3);
+        audioFilters.push(`afade=t=out:st=${fadeOutStart}:d=3`);
+    }
+
+    const command = ffmpeg()
         .input(remoteFileUrl)
         .inputOptions([`-ss ${start}`]) 
-        .outputOptions([`-t ${duration}`])
+        .outputOptions([`-t ${duration}`]);
+
+    if (audioFilters.length > 0) {
+        command.audioFilters(audioFilters);
+    }
+
+    command
         .format('mp3')
         .audioCodec('libmp3lame')
         .on('error', (err) => {
@@ -71,13 +89,8 @@ app.get('/search', async (req, res) => {
         return validUser.username === user && validUser.password === pass;
     });
 
-    if (!isAuthenticated) {
-        return res.status(401).json({ error: 'User or password incorrect' });
-    }
-    
-    if (!station || !date) {
-        return res.status(400).json({ error: 'Missing station or date parameters' });
-    }
+    if (!isAuthenticated) return res.status(401).json({ error: 'User or password incorrect' });
+    if (!station || !date) return res.status(400).json({ error: 'Missing station or date parameters' });
 
     const dateParts = date.split('-'); 
     const year = dateParts[0];
@@ -88,7 +101,6 @@ app.get('/search', async (req, res) => {
 
     try {
         const response = await fetch(targetDirectoryUrl);
-        
         if (!response.ok) {
             if (response.status === 404) return res.json([]); 
             throw new Error(`Failed to fetch directory listing: HTTP ${response.status}`);
@@ -97,7 +109,6 @@ app.get('/search', async (req, res) => {
         const htmlText = await response.text();
         const dom = new JSDOM(htmlText);
         const links = dom.window.document.querySelectorAll('a');
-        
         let recordings = [];
 
         links.forEach(link => {
@@ -112,27 +123,18 @@ app.get('/search', async (req, res) => {
         
         if (hour) {
             const targetHour = parseInt(hour, 10);
-            
-            if (isNaN(targetHour) || targetHour < 0 || targetHour > 23) {
-                return res.status(400).json({ error: 'Invalid hour' });
-            }
+            if (isNaN(targetHour) || targetHour < 0 || targetHour > 23) return res.status(400).json({ error: 'Invalid hour' });
 
             recordings = recordings.filter(file => {
                 const fileNameWithoutExtension = file.name.slice(0, -4); 
-                
                 const prefix = station + year + month + day;
                 const fileHourStr = fileNameWithoutExtension.replace(prefix, '');
-                
                 if (fileHourStr === "") return false; 
-                
                 const fileHour = parseInt(fileHourStr, 10);
-                
                 return fileHour === targetHour;
             });
         }
-        
         res.json(recordings);
-
     } catch (error) {
         console.error('SERVER DEBUG ERROR:', error.message);
         return res.status(500).json({ error: 'Failed to process request on proxy server.' });
@@ -141,34 +143,17 @@ app.get('/search', async (req, res) => {
 
 app.use('/recordings', async (req, res) => {
     const remoteUrl = REMOTE_RECORDING_SERVER_URL + req.originalUrl.replace('/recordings', '');
-    
     const headers = {};
-    if (req.headers.range) {
-        headers['Range'] = req.headers.range;
-    }
+    if (req.headers.range) headers['Range'] = req.headers.range;
 
     try {
         const response = await fetch(remoteUrl, { headers });
-        
         res.status(response.status);
-
-        const headersToForward = [
-            'content-range', 
-            'content-length', 
-            'content-type', 
-            'accept-ranges',
-            'last-modified'
-        ];
-        
+        const headersToForward = ['content-range', 'content-length', 'content-type', 'accept-ranges', 'last-modified'];
         headersToForward.forEach(header => {
-            const val = response.headers.get(header);
-            if (val) {
-                res.setHeader(header, val);
-            }
+            if (response.headers.has(header)) res.set(header, response.headers.get(header));
         });
-
         response.body.pipe(res);
-
     } catch (error) {
         console.error('Streaming Proxy Error:', error.message);
         if (!res.headersSent) res.status(500).send('Streaming error');
