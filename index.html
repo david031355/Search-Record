@@ -4,19 +4,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>חיפוש הקלטות רדיו</title>
-    
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Rubik:wght@300;400;500;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    
-    <link rel="stylesheet" href="style.css?v=4">
-
-    <style>
-        .hidden { display: none !important; }
-        /* מסתיר את התוכן הראשי מיד בטעינה */
-        #main-content { display: none; } 
-    </style>
+    <link rel="stylesheet" href="style.css?v=5">
 </head>
 <body>
     
@@ -25,17 +17,14 @@
     <div id="login-container">
         <h2>כניסת משתמש</h2>
         <p id="login-message"></p>
-        
         <div class="login-field">
             <label for="initial-username">שם משתמש:</label>
             <input type="text" id="initial-username" required>
         </div>
-        
         <div class="login-field">
             <label for="initial-password">סיסמה:</label>
             <input type="password" id="initial-password" required>
         </div>
-        
         <button id="login-btn">כניסה</button>
     </div>
 
@@ -91,7 +80,7 @@
         </div>
     </div>
 
-    <div id="editor-modal" class="modal">
+    <div id="editor-modal" class="modal" style="display: none;">
         <div class="modal-content dark-studio-theme">
             <span class="close-modal">&times;</span>
             <h2 style="color: #fff; margin-bottom: 20px;">עריכת הקלטה</h2>
@@ -99,7 +88,7 @@
             
             <audio id="editor-audio-element" style="width: 100%; margin-bottom: 10px;" controls></audio>
 
-            <div id="waveform-loading">טוען גלי קול... (ניתן להאזין ולחתוך בזמן הטעינה)</div>
+            <div id="waveform-loading">טוען גלי קול...</div>
             
             <div class="waveform-wrapper">
                 <div id="waveform"></div>
@@ -107,7 +96,6 @@
             </div>
 
             <div class="editor-controls">
-                
                 <div class="fade-controls">
                     <label class="fade-option">
                         <input type="checkbox" id="fade-in-check">
