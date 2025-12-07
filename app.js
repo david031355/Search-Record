@@ -38,16 +38,9 @@ const sendAuthRequest = async (username, password) => {
 };
 
 document.addEventListener('DOMContentLoaded', async () => {
-    console.log("DOM loaded, initializing scripts...");
-
     const loginContainer = document.getElementById('login-container');
     const mainContent = document.getElementById('main-content');
     const themeToggleBtn = document.getElementById('theme-toggle');
-
-    if (!loginContainer || !mainContent) {
-        console.error("Critical Error: HTML elements missing!");
-        return;
-    }
 
     if (themeToggleBtn) {
         const themeIcon = themeToggleBtn.querySelector('i');
@@ -91,8 +84,13 @@ document.addEventListener('DOMContentLoaded', async () => {
     let wsRegions = null;
     const modal = document.getElementById('editor-modal');
     const closeModal = document.querySelector('.close-modal');
-    const loadingWave = document.getElementById('waveform-loading');
     const editorAudio = document.getElementById('editor-audio-element');
+
+    // פונקציית מעבר לדף הראשי
+    const showMainContent = () => {
+        loginContainer.classList.add('hidden');
+        mainContent.classList.remove('hidden');
+    };
 
     const checkSession = async () => {
         const storedUser = sessionStorage.getItem('radioUser');
@@ -100,14 +98,13 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         if (storedUser && storedPass) {
             if (await sendAuthRequest(storedUser, storedPass)) {
-                loginContainer.style.display = 'none'; 
-                mainContent.style.display = 'block'; 
+                showMainContent();
                 return;
             } else {
                 sessionStorage.clear();
             }
         }
-        loginContainer.style.display = 'block'; 
+        loginContainer.classList.remove('hidden'); 
     };
     
     checkSession();
@@ -123,8 +120,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             if (await sendAuthRequest(userIn, passIn)) {
                 sessionStorage.setItem('radioUser', userIn);
                 sessionStorage.setItem('radioPass', passIn);
-                loginContainer.style.display = 'none';
-                mainContent.style.display = 'block';
+                showMainContent();
             } else {
                 if (loginMessage) loginMessage.textContent = 'שם משתמש או סיסמה שגויים.';
                 loginBtn.disabled = false; 
@@ -178,8 +174,6 @@ document.addEventListener('DOMContentLoaded', async () => {
                     resultsList.innerHTML = `<li>לא נמצאו הקלטות.</li>`;
                 } else {
                     const [year, monthRaw, dayRaw] = date.split('-'); 
-                    const month = parseInt(monthRaw, 10).toString(); 
-                    const day = parseInt(dayRaw, 10).toString();
 
                     files.forEach(file => {
                         const listItem = document.createElement('li');
@@ -237,7 +231,6 @@ document.addEventListener('DOMContentLoaded', async () => {
             } catch (error) {
                 if (loadingDiv) loadingDiv.style.display = 'none';
                 resultsList.innerHTML = `<li>שגיאה: ${error.message}</li>`;
-                console.error('Search error:', error);
             }
         });
     }
@@ -267,7 +260,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     if (modal && closeModal) {
         closeModal.onclick = () => {
-            modal.style.display = 'none';
+            modal.classList.remove('show');
             if (wavesurfer) {
                 wavesurfer.destroy();
                 wavesurfer = null;
@@ -286,7 +279,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 const src = editButton.getAttribute('data-src');
                 const filename = editButton.getAttribute('data-name');
                 
-                modal.style.display = 'flex';
+                modal.classList.add('show');
                 const editorFilename = document.getElementById('editor-filename');
                 if (editorFilename) editorFilename.textContent = filename;
                 
