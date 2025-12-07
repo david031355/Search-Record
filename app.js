@@ -42,6 +42,11 @@ document.addEventListener('DOMContentLoaded', async () => {
     const mainContent = document.getElementById('main-content');
     const themeToggleBtn = document.getElementById('theme-toggle');
 
+    if (!loginContainer || !mainContent) {
+        console.error("Critical Error: HTML elements missing!");
+        return;
+    }
+
     if (themeToggleBtn) {
         const themeIcon = themeToggleBtn.querySelector('i');
         const currentTheme = localStorage.getItem('theme');
@@ -84,13 +89,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     let wsRegions = null;
     const modal = document.getElementById('editor-modal');
     const closeModal = document.querySelector('.close-modal');
+    const loadingWave = document.getElementById('waveform-loading');
     const editorAudio = document.getElementById('editor-audio-element');
-
-    // פונקציית מעבר לדף הראשי
-    const showMainContent = () => {
-        loginContainer.classList.add('hidden');
-        mainContent.classList.remove('hidden');
-    };
 
     const checkSession = async () => {
         const storedUser = sessionStorage.getItem('radioUser');
@@ -98,7 +98,8 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         if (storedUser && storedPass) {
             if (await sendAuthRequest(storedUser, storedPass)) {
-                showMainContent();
+                loginContainer.classList.add('hidden');
+                mainContent.classList.remove('hidden');
                 return;
             } else {
                 sessionStorage.clear();
@@ -120,7 +121,8 @@ document.addEventListener('DOMContentLoaded', async () => {
             if (await sendAuthRequest(userIn, passIn)) {
                 sessionStorage.setItem('radioUser', userIn);
                 sessionStorage.setItem('radioPass', passIn);
-                showMainContent();
+                loginContainer.classList.add('hidden');
+                mainContent.classList.remove('hidden');
             } else {
                 if (loginMessage) loginMessage.textContent = 'שם משתמש או סיסמה שגויים.';
                 loginBtn.disabled = false; 
@@ -309,7 +311,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                     cursorColor: '#333',
                     height: 128,
                     media: editorAudio, 
-                    fetchMedia: false, 
+                    fetchMedia: true, 
                     plugins: [
                         WaveSurfer.Timeline.create({ container: '#wave-timeline' }),
                         WaveSurfer.Regions.create()
@@ -355,13 +357,17 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (btnPlayRegion) {
         btnPlayRegion.addEventListener('click', () => {
             if (!wavesurfer) return;
+            
             if (wavesurfer.isPlaying()) {
                 wavesurfer.pause();
             } else {
                 if (wsRegions) {
                     const regions = wsRegions.getRegions();
-                    if (regions.length > 0) regions[0].play();
-                    else wavesurfer.play();
+                    if (regions.length > 0) {
+                        regions[0].play();
+                    } else {
+                        wavesurfer.play();
+                    }
                 } else {
                     wavesurfer.play();
                 }
