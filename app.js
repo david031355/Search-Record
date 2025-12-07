@@ -1,6 +1,10 @@
 console.log("App.js started loading..."); 
 
-const PROXY_SERVER_URL = ''; 
+// ******************************************************************
+// ⚠️ תיקון: כתובת מלאה וישירה (בלי סלאש בסוף)
+// ******************************************************************
+const PROXY_SERVER_URL = 'https://search-record.onrender.com'; 
+// ******************************************************************
 
 const LOGO_MAP = {
     'kcm': 'img/kcm.svg',
@@ -38,6 +42,8 @@ const sendAuthRequest = async (username, password) => {
 };
 
 document.addEventListener('DOMContentLoaded', async () => {
+    console.log("DOM loaded, initializing scripts...");
+
     const loginContainer = document.getElementById('login-container');
     const mainContent = document.getElementById('main-content');
     const themeToggleBtn = document.getElementById('theme-toggle');
@@ -176,6 +182,8 @@ document.addEventListener('DOMContentLoaded', async () => {
                     resultsList.innerHTML = `<li>לא נמצאו הקלטות.</li>`;
                 } else {
                     const [year, monthRaw, dayRaw] = date.split('-'); 
+                    const month = parseInt(monthRaw, 10).toString(); 
+                    const day = parseInt(dayRaw, 10).toString();
 
                     files.forEach(file => {
                         const listItem = document.createElement('li');
@@ -233,6 +241,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             } catch (error) {
                 if (loadingDiv) loadingDiv.style.display = 'none';
                 resultsList.innerHTML = `<li>שגיאה: ${error.message}</li>`;
+                console.error('Search error:', error);
             }
         });
     }
@@ -240,6 +249,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (resultsList && player && playerContainer) {
         resultsList.addEventListener('click', function(event) {
             const playButton = event.target.closest('.btn-listen');
+            // אם זה לא כפתור עריכה
             if (playButton && !playButton.classList.contains('btn-edit')) {
                 const src = playButton.getAttribute('data-src');
                 const title = playButton.getAttribute('data-title');
@@ -334,7 +344,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 
                 wavesurfer.on('play', () => {
                     const btn = document.getElementById('btn-play-region');
-                    if (btn) btn.innerHTML = '<i class="fas fa-pause"></i> השהה נגינה';
+                    if (btn) btn.innerHTML = '<i class="fas fa-pause"></i> השהה';
                 });
                 wavesurfer.on('pause', () => {
                     const btn = document.getElementById('btn-play-region');
