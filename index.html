@@ -4,11 +4,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>חיפוש הקלטות רדיו</title>
+    
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Rubik:wght@300;400;500;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <link rel="stylesheet" href="style.css?v=3">
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
     
@@ -81,25 +82,52 @@
     </div>
 
     <div id="editor-modal" class="modal">
-        <div class="modal-content">
+        <div class="modal-content dark-studio-theme">
             <span class="close-modal">&times;</span>
-            <h2>עריכת הקלטה</h2>
-            <p id="editor-filename" style="direction: ltr; text-align: center; color: var(--text-light);"></p>
+            <h2 style="color: #fff; margin-bottom: 20px;">עריכת הקלטה</h2>
+            <p id="editor-filename" style="direction: ltr; text-align: center; color: #aaa; margin-bottom: 20px;"></p>
             
             <audio id="editor-audio-element" style="width: 100%; margin-bottom: 10px;" controls></audio>
 
-            <div id="waveform-loading">טוען גלי קול... (ניתן להאזין ולחתוך בזמן הטעינה)</div>
-            <div id="waveform"></div>
-            <div id="wave-timeline"></div>
+            <div id="waveform-loading">טוען גלי קול...</div>
+            
+            <div class="waveform-wrapper">
+                <div id="waveform"></div>
+                <div id="wave-timeline"></div>
+            </div>
 
             <div class="editor-controls">
-                <button id="btn-play-region" class="editor-btn"><i class="fas fa-expand"></i> נגן אזור מסומן</button>
-                <div class="time-inputs">
-                    <div><label>התחלה:</label> <span id="region-start">0:00</span></div>
-                    <div><label>סיום:</label> <span id="region-end">0:00</span></div>
-                    <div><label>סה"כ:</label> <span id="region-duration" style="font-weight: bold;">0:00</span></div>
+                
+                <div class="fade-controls">
+                    <label class="fade-option">
+                        <input type="checkbox" id="fade-in-check">
+                        <span class="fade-label"><i class="fas fa-arrow-up"></i> פייד אין (3ש')</span>
+                    </label>
+                    <label class="fade-option">
+                        <input type="checkbox" id="fade-out-check">
+                        <span class="fade-label"><i class="fas fa-arrow-down"></i> פייד אאוט (3ש')</span>
+                    </label>
                 </div>
-                <button id="btn-download-cut" class="editor-btn download-btn"><i class="fas fa-cut"></i> חתוך והורד</button>
+
+                <div class="time-inputs">
+                    <div class="time-box">
+                        <span class="time-label">התחלה</span>
+                        <span id="region-start" class="time-val">0:00</span>
+                    </div>
+                    <div class="time-box">
+                        <span class="time-label">סיום</span>
+                        <span id="region-end" class="time-val">0:00</span>
+                    </div>
+                    <div class="time-box">
+                        <span class="time-label">משך</span>
+                        <span id="region-duration" class="time-val">0:00</span>
+                    </div>
+                </div>
+
+                <div class="action-buttons">
+                    <button id="btn-play-region" class="editor-btn"><i class="fas fa-play"></i> נגן בחירה</button>
+                    <button id="btn-download-cut" class="editor-btn download-btn"><i class="fas fa-cut"></i> חתוך והורד</button>
+                </div>
             </div>
         </div>
     </div>
