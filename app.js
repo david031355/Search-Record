@@ -38,30 +38,24 @@ const sendAuthRequest = async (username, password) => {
 };
 
 document.addEventListener('DOMContentLoaded', async () => {
-    console.log("DOM loaded, initializing scripts...");
-
     const loginContainer = document.getElementById('login-container');
     const mainContent = document.getElementById('main-content');
     const themeToggleBtn = document.getElementById('theme-toggle');
 
     if (!loginContainer || !mainContent) {
-        console.error("Critical Error: HTML elements missing!");
         return;
     }
 
     if (themeToggleBtn) {
         const themeIcon = themeToggleBtn.querySelector('i');
         const currentTheme = localStorage.getItem('theme');
-        
         if (currentTheme === 'dark') {
             document.body.classList.add('dark-mode');
             if(themeIcon) { themeIcon.classList.remove('fa-moon'); themeIcon.classList.add('fa-sun'); }
         }
-
         themeToggleBtn.addEventListener('click', () => {
             document.body.classList.toggle('dark-mode');
             const isDark = document.body.classList.contains('dark-mode');
-            
             if (themeIcon) {
                 themeIcon.className = isDark ? 'fas fa-sun' : 'fas fa-moon';
             }
@@ -138,7 +132,6 @@ document.addEventListener('DOMContentLoaded', async () => {
             
             const username = sessionStorage.getItem('radioUser');
             const password = sessionStorage.getItem('radioPass');
-            
             const station = document.getElementById('station').value;
             const date = document.getElementById('date').value;
             const hour = document.getElementById('hour').value;
@@ -155,13 +148,11 @@ document.addEventListener('DOMContentLoaded', async () => {
 
             const encodedUser = encodeURIComponent(username);
             const encodedPass = encodeURIComponent(password);
-            
             let searchUrl = `${PROXY_SERVER_URL}/search?user=${encodedUser}&pass=${encodedPass}&station=${station}&date=${date}`;
             if (hour !== '') searchUrl += `&hour=${hour}`;
 
             try {
                 const response = await fetch(searchUrl);
-                
                 if (!response.ok) {
                     if (response.status === 401) {
                         sessionStorage.clear();
@@ -178,8 +169,6 @@ document.addEventListener('DOMContentLoaded', async () => {
                     resultsList.innerHTML = `<li>לא נמצאו הקלטות.</li>`;
                 } else {
                     const [year, monthRaw, dayRaw] = date.split('-'); 
-                    const month = parseInt(monthRaw, 10).toString(); 
-                    const day = parseInt(dayRaw, 10).toString();
 
                     files.forEach(file => {
                         const listItem = document.createElement('li');
@@ -237,7 +226,6 @@ document.addEventListener('DOMContentLoaded', async () => {
             } catch (error) {
                 if (loadingDiv) loadingDiv.style.display = 'none';
                 resultsList.innerHTML = `<li>שגיאה: ${error.message}</li>`;
-                console.error('Search error:', error);
             }
         });
     }
@@ -296,15 +284,16 @@ document.addEventListener('DOMContentLoaded', async () => {
                     waveStatus.textContent = 'טוען גלי קול... (ניתן כבר לנגן ולבחור)';
                 }
 
+                if (editorAudio) {
+                    editorAudio.crossOrigin = "anonymous";
+                    editorAudio.src = src;
+                    editorAudio.load();
+                }
+                
                 const waveEl = document.getElementById('waveform');
                 if (waveEl) waveEl.innerHTML = ''; 
                 
                 modal.setAttribute('data-current-url', src);
-
-                if (editorAudio) {
-                    editorAudio.crossOrigin = "anonymous";
-                    editorAudio.src = src;
-                }
 
                 if (typeof WaveSurfer === 'undefined') return;
 
@@ -315,6 +304,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                     cursorColor: '#333',
                     height: 128,
                     media: editorAudio, 
+                    fetchMedia: false, 
                     plugins: [
                         WaveSurfer.Timeline.create({ container: '#wave-timeline' }),
                         WaveSurfer.Regions.create()
@@ -325,7 +315,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
                 wavesurfer.on('ready', () => {
                     if (waveStatus) waveStatus.style.display = 'none';
-                    wsRegions.addRegion({ start: 0, end: 60, color: 'rgba(40, 167, 69, 0.3)', drag: true, resize: true });
+                    wsRegions.addRegion({ start: 0, end: 60, color: 'rgba(0, 255, 204, 0.2)', drag: true, resize: true });
                 });
 
                 wsRegions.on('region-updated', (region) => updateRegionDisplay(region));
@@ -333,15 +323,6 @@ document.addEventListener('DOMContentLoaded', async () => {
                     updateRegionDisplay(region);
                     const regs = wsRegions.getRegions();
                     if (regs.length > 1) regs[0].remove();
-                });
-
-                wavesurfer.on('play', () => {
-                    const btn = document.getElementById('btn-play-region');
-                    if (btn) btn.innerHTML = '<i class="fas fa-pause"></i> השהה';
-                });
-                wavesurfer.on('pause', () => {
-                    const btn = document.getElementById('btn-play-region');
-                    if (btn) btn.innerHTML = '<i class="fas fa-expand"></i> נגן בחירה';
                 });
             });
         }
@@ -359,21 +340,10 @@ document.addEventListener('DOMContentLoaded', async () => {
     const btnPlayRegion = document.getElementById('btn-play-region');
     if (btnPlayRegion) {
         btnPlayRegion.addEventListener('click', () => {
-            if (!wavesurfer) return;
-            
-            if (wavesurfer.isPlaying()) {
-                wavesurfer.pause();
-            } else {
-                if (wsRegions) {
-                    const regions = wsRegions.getRegions();
-                    if (regions.length > 0) {
-                        regions[0].play();
-                    } else {
-                        wavesurfer.play();
-                    }
-                } else {
-                    wavesurfer.play();
-                }
+            if (!wsRegions) return;
+            const regions = wsRegions.getRegions();
+            if (regions.length > 0) {
+                regions[0].play();
             }
         });
     }
@@ -392,11 +362,15 @@ document.addEventListener('DOMContentLoaded', async () => {
             const duration = region.end - region.start;
             const filename = document.getElementById('editor-filename').textContent;
             const fileUrl = modal.getAttribute('data-current-url');
+            
+            // שליפת הגדרות הפייד
+            const fadeIn = document.getElementById('fade-in-check').checked;
+            const fadeOut = document.getElementById('fade-out-check').checked;
 
             const encodedFile = encodeURIComponent(filename);
             const encodedUrl = encodeURIComponent(fileUrl);
             
-            const downloadUrl = `${PROXY_SERVER_URL}/trim?url=${encodedUrl}&start=${start}&duration=${duration}&filename=${encodedFile}`;
+            const downloadUrl = `${PROXY_SERVER_URL}/trim?url=${encodedUrl}&start=${start}&duration=${duration}&filename=${encodedFile}&fadein=${fadeIn}&fadeout=${fadeOut}`;
             window.location.href = downloadUrl;
         });
     }
