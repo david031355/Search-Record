@@ -38,24 +38,30 @@ const sendAuthRequest = async (username, password) => {
 };
 
 document.addEventListener('DOMContentLoaded', async () => {
+    console.log("DOM loaded, initializing scripts...");
+
     const loginContainer = document.getElementById('login-container');
     const mainContent = document.getElementById('main-content');
     const themeToggleBtn = document.getElementById('theme-toggle');
 
     if (!loginContainer || !mainContent) {
+        console.error("Critical Error: HTML elements missing!");
         return;
     }
 
     if (themeToggleBtn) {
         const themeIcon = themeToggleBtn.querySelector('i');
         const currentTheme = localStorage.getItem('theme');
+        
         if (currentTheme === 'dark') {
             document.body.classList.add('dark-mode');
             if(themeIcon) { themeIcon.classList.remove('fa-moon'); themeIcon.classList.add('fa-sun'); }
         }
+
         themeToggleBtn.addEventListener('click', () => {
             document.body.classList.toggle('dark-mode');
             const isDark = document.body.classList.contains('dark-mode');
+            
             if (themeIcon) {
                 themeIcon.className = isDark ? 'fas fa-sun' : 'fas fa-moon';
             }
@@ -94,14 +100,14 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         if (storedUser && storedPass) {
             if (await sendAuthRequest(storedUser, storedPass)) {
-                loginContainer.classList.add('hidden');
-                mainContent.classList.remove('hidden');
+                loginContainer.style.display = 'none'; 
+                mainContent.style.display = 'block'; 
                 return;
             } else {
                 sessionStorage.clear();
             }
         }
-        loginContainer.classList.remove('hidden'); 
+        loginContainer.style.display = 'block'; 
     };
     
     checkSession();
@@ -117,8 +123,8 @@ document.addEventListener('DOMContentLoaded', async () => {
             if (await sendAuthRequest(userIn, passIn)) {
                 sessionStorage.setItem('radioUser', userIn);
                 sessionStorage.setItem('radioPass', passIn);
-                loginContainer.classList.add('hidden');
-                mainContent.classList.remove('hidden');
+                loginContainer.style.display = 'none';
+                mainContent.style.display = 'block';
             } else {
                 if (loginMessage) loginMessage.textContent = 'שם משתמש או סיסמה שגויים.';
                 loginBtn.disabled = false; 
@@ -132,6 +138,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             
             const username = sessionStorage.getItem('radioUser');
             const password = sessionStorage.getItem('radioPass');
+            
             const station = document.getElementById('station').value;
             const date = document.getElementById('date').value;
             const hour = document.getElementById('hour').value;
@@ -148,11 +155,13 @@ document.addEventListener('DOMContentLoaded', async () => {
 
             const encodedUser = encodeURIComponent(username);
             const encodedPass = encodeURIComponent(password);
+            
             let searchUrl = `${PROXY_SERVER_URL}/search?user=${encodedUser}&pass=${encodedPass}&station=${station}&date=${date}`;
             if (hour !== '') searchUrl += `&hour=${hour}`;
 
             try {
                 const response = await fetch(searchUrl);
+                
                 if (!response.ok) {
                     if (response.status === 401) {
                         sessionStorage.clear();
@@ -169,6 +178,8 @@ document.addEventListener('DOMContentLoaded', async () => {
                     resultsList.innerHTML = `<li>לא נמצאו הקלטות.</li>`;
                 } else {
                     const [year, monthRaw, dayRaw] = date.split('-'); 
+                    const month = parseInt(monthRaw, 10).toString(); 
+                    const day = parseInt(dayRaw, 10).toString();
 
                     files.forEach(file => {
                         const listItem = document.createElement('li');
@@ -226,6 +237,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             } catch (error) {
                 if (loadingDiv) loadingDiv.style.display = 'none';
                 resultsList.innerHTML = `<li>שגיאה: ${error.message}</li>`;
+                console.error('Search error:', error);
             }
         });
     }
@@ -255,7 +267,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     if (modal && closeModal) {
         closeModal.onclick = () => {
-            modal.classList.remove('show');
+            modal.style.display = 'none';
             if (wavesurfer) {
                 wavesurfer.destroy();
                 wavesurfer = null;
@@ -274,7 +286,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 const src = editButton.getAttribute('data-src');
                 const filename = editButton.getAttribute('data-name');
                 
-                modal.classList.add('show');
+                modal.style.display = 'flex';
                 const editorFilename = document.getElementById('editor-filename');
                 if (editorFilename) editorFilename.textContent = filename;
                 
@@ -324,6 +336,15 @@ document.addEventListener('DOMContentLoaded', async () => {
                     const regs = wsRegions.getRegions();
                     if (regs.length > 1) regs[0].remove();
                 });
+                
+                wavesurfer.on('play', () => {
+                    const btn = document.getElementById('btn-play-region');
+                    if (btn) btn.innerHTML = '<i class="fas fa-pause"></i> השהה נגינה';
+                });
+                wavesurfer.on('pause', () => {
+                    const btn = document.getElementById('btn-play-region');
+                    if (btn) btn.innerHTML = '<i class="fas fa-expand"></i> נגן בחירה';
+                });
             });
         }
     }
@@ -340,10 +361,17 @@ document.addEventListener('DOMContentLoaded', async () => {
     const btnPlayRegion = document.getElementById('btn-play-region');
     if (btnPlayRegion) {
         btnPlayRegion.addEventListener('click', () => {
-            if (!wsRegions) return;
-            const regions = wsRegions.getRegions();
-            if (regions.length > 0) {
-                regions[0].play();
+            if (!wavesurfer) return;
+            if (wavesurfer.isPlaying()) {
+                wavesurfer.pause();
+            } else {
+                if (wsRegions) {
+                    const regions = wsRegions.getRegions();
+                    if (regions.length > 0) regions[0].play();
+                    else wavesurfer.play();
+                } else {
+                    wavesurfer.play();
+                }
             }
         });
     }
@@ -362,8 +390,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             const duration = region.end - region.start;
             const filename = document.getElementById('editor-filename').textContent;
             const fileUrl = modal.getAttribute('data-current-url');
-            
-            // שליפת הגדרות הפייד
+
             const fadeIn = document.getElementById('fade-in-check').checked;
             const fadeOut = document.getElementById('fade-out-check').checked;
 
