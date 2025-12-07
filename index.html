@@ -8,7 +8,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Rubik:wght@300;400;500;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="style.css?v=6">
 </head>
 <body>
     
@@ -89,10 +89,14 @@
             <audio id="editor-audio-element" style="width: 100%; margin-bottom: 10px;" controls></audio>
 
             <div id="waveform-loading">טוען גלי קול...</div>
-            <div id="waveform"></div>
-            <div id="wave-timeline"></div>
+            
+            <div class="waveform-wrapper">
+                <div id="waveform"></div>
+                <div id="wave-timeline"></div>
+            </div>
 
             <div class="editor-controls">
+                
                 <div class="fade-controls">
                     <label class="fade-option">
                         <input type="checkbox" id="fade-in-check">
