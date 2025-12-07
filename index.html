@@ -9,7 +9,14 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Rubik:wght@300;400;500;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <link rel="stylesheet" href="style.css">
+    
+    <link rel="stylesheet" href="style.css?v=4">
+
+    <style>
+        .hidden { display: none !important; }
+        /* מסתיר את התוכן הראשי מיד בטעינה */
+        #main-content { display: none; } 
+    </style>
 </head>
 <body>
     
@@ -18,18 +25,21 @@
     <div id="login-container">
         <h2>כניסת משתמש</h2>
         <p id="login-message"></p>
+        
         <div class="login-field">
             <label for="initial-username">שם משתמש:</label>
             <input type="text" id="initial-username" required>
         </div>
+        
         <div class="login-field">
             <label for="initial-password">סיסמה:</label>
             <input type="password" id="initial-password" required>
         </div>
+        
         <button id="login-btn">כניסה</button>
     </div>
 
-    <div id="main-content" class="hidden">
+    <div id="main-content" class="hidden" style="display: none;">
         <h1>חיפוש הקלטות רדיו 📻</h1>
         <p class="subtitle">פותח בלעדית עבור חיים קורץ - כל הזכויות שמורות ©</p>
 
@@ -89,7 +99,7 @@
             
             <audio id="editor-audio-element" style="width: 100%; margin-bottom: 10px;" controls></audio>
 
-            <div id="waveform-loading">טוען גלי קול...</div>
+            <div id="waveform-loading">טוען גלי קול... (ניתן להאזין ולחתוך בזמן הטעינה)</div>
             
             <div class="waveform-wrapper">
                 <div id="waveform"></div>
